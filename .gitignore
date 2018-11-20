@@ -10,3 +10,5 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+# 私有测试，不上传
+my
