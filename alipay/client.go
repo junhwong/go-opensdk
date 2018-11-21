@@ -2,25 +2,23 @@ package alipay
 
 import (
 	"crypto/rsa"
-	"errors"
-	"fmt"
 	"io/ioutil"
-	"regexp"
 	"time"
 
+	"github.com/junhwong/go-opensdk/common"
 	"github.com/junhwong/go-utils/crypto"
 )
 
 // 待签名样例
 // app_id=2014072300007148&biz_content={"button":[{"actionParam":"ZFB_HFCZ","actionType":"out","name":"话费充值"},{"name":"查询","subButton":[{"actionParam":"ZFB_YECX","actionType":"out","name":"余额查询"},{"actionParam":"ZFB_LLCX","actionType":"out","name":"流量查询"},{"actionParam":"ZFB_HFCX","actionType":"out","name":"话费查询"}]},{"actionParam":"http://m.alipay.com","actionType":"link","name":"最新优惠"}]}&charset=GBK&method=alipay.mobile.public.menu.add&sign_type=RSA2&timestamp=2014-07-24 03:07:50&version=1.0
 
-type CommonResponse struct {
-	Sign       string `json:"sign"`
-	Code       string `json:"code"`
-	Message    string `json:"msg"`
-	SubCode    string `json:"sub_code"`
-	SubMessage string `json:"sub_msg"`
-}
+// type CommonResponse struct {
+// 	Sign       string `json:"sign"`
+// 	Code       string `json:"code"`
+// 	Message    string `json:"msg"`
+// 	SubCode    string `json:"sub_code"`
+// 	SubMessage string `json:"sub_msg"`
+// }
 
 type Client struct {
 	AppID      string
@@ -58,46 +56,36 @@ func NewClient(gateway, appID, privateKeyPath, alipayPublicKeyPath string) *Clie
 	return c
 }
 
-func BuildParams(method string) map[string]string {
-	params := map[string]string{}
-	params["method"] = method
-	return params
-}
+// func BuildParams(method string) map[string]string {
+// 	params := map[string]string{}
+// 	params["method"] = method
+// 	return params
+// }
 
-type OauthTokenResponse struct {
-}
+// type OauthTokenResponse struct {
+// }
 
-func (c *Client) Execute(params map[string]string, resultsField string, bizContent ...interface{}) *Executor {
-	params["app_id"] = c.AppID
-	params["format"] = "json"
-	params["charset"] = "utf-8"
-	params["version"] = "1.0"
-	params["sign_type"] = "RSA2"
-	params["timestamp"] = time.Now().Format("2006-01-02 15:04:05")
+func (c *Client) Build(methodOrURL string, params ...common.Params) common.Executor {
+	if len(params) > 1 {
+		panic("无效的参数")
+	}
+	var p common.Params
+	if len(params) == 1 {
+		p = params[0]
+	} else {
+		p = common.Params{}
+	}
+	p["method"] = methodOrURL
+	p["app_id"] = c.AppID
+	p["format"] = "json"
+	p["charset"] = "utf-8"
+	p["version"] = "1.0"
+	p["sign_type"] = "RSA2"
+	p["timestamp"] = time.Now().Format("2006-01-02 15:04:05")
 	return &Executor{
-		client:       c,
-		params:       params,
-		resultsField: resultsField,
+		BaseExecutor: common.BaseExecutor{
+			Params: p,
+		},
+		client: c,
 	}
-}
-
-func (c *Client) v(strResp string) error {
-	// 正则验签
-	expResult := `(^\{\"[a-z|_]+\":)|(,\"sign\":\"[a-zA-Z0-9|\+|\/|\=]+\"\}$)`
-	exptSign := `\"sign\":\"([a-zA-Z0-9|\+|\/|\=]+)\"`
-	regResult := regexp.MustCompile(expResult)
-	result := regResult.ReplaceAllString(strResp, "")
-	regSign := regexp.MustCompile(exptSign)
-	signMatchRes := regSign.FindStringSubmatch(strResp)
-	if len(signMatchRes) < 2 {
-		return errors.New("验签失败:签名丢失")
-	}
-	sign := signMatchRes[1]
-	err := verifyRSA2(result, sign, c.PublicKey)
-	if err != nil {
-		fmt.Println("***********")
-		fmt.Println(err)
-		return err
-	}
-	return nil
 }

@@ -10,8 +10,6 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-# 私有测试，不上传
-my
 
 # Windows
 [Dd]esktop.ini
@@ -24,3 +22,7 @@ $RECYCLE.BIN/
 .Spotlight-V100
 .TemporaryItems
 .Trashes
+
+# 私有测试，不上传
+tests/my
+
