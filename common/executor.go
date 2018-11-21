@@ -74,14 +74,6 @@ func (e *DefaultExecutor) SetAppAuthToken(url string) {
 
 }
 
-/*
-{"alipay_system_oauth_token_response":{"access_token":"authusrBe456e5dcbf714cebacd620d83c047F79","alipay_user_id":"20881041302782186927417731510379","expires_in":1296000,"re_expires_in":2592000,"refresh_token":"authusrB361200341ef14df8b7eee42682b31X79","user_id":"2088002463165793"},"sign":"F/A0Hmg88ven3owWJ0umE9n9iMQYB+QoHLF/hd+BMcNoSzA4gNqr07BDWSnHVQPwQiPf3JQuj+b+4RTpPAh07FVPvbjdkIBsN84dwwejyZ8pwQlV/CqZEuNrrbFwGadnFDjtKmppj5qDh6YcHDei6TEvtxQY2Uz1ZxlxvBdqFRO+lyEiefgaw4ZaD1B3ccWrueu6pQiqgm6h/23//N6hEgCKzI3rJdvCLKVjehTaolYWdbVBnnDaxMEISEmGDOPbjMBfaY7YT/eiJ4I9XktRTtIvvJdMVpCxC6mgMnFP3szFlbSC7bj8o6l+z6CDtqDPCzfklJ2LKlYxom7vV8Y+/Q=="}
-
-{"alipay_system_oauth_token_response":{"access_token":"authusrBe456e5dcbf714cebacd620d83c047F79","alipay_user_id":"20881041302782186927417731510379","expires_in":1296000,"re_expires_in":2592000,"refresh_token":"authusrB361200341ef14df8b7eee42682b31X79","user_id":"2088002463165793"},"sign":"F/A0Hmg88ven3owWJ0umE9n9iMQYB+QoHLF/hd+BMcNoSzA4gNqr07BDWSnHVQPwQiPf3JQuj+b+4RTpPAh07FVPvbjdkIBsN84dwwejyZ8pwQlV/CqZEuNrrbFwGadnFDjtKmppj5qDh6YcHDei6TEvtxQY2Uz1ZxlxvBdqFRO+lyEiefgaw4ZaD1B3ccWrueu6pQiqgm6h/23//N6hEgCKzI3rJdvCLKVjehTaolYWdbVBnnDaxMEISEmGDOPbjMBfaY7YT/eiJ4I9XktRTtIvvJdMVpCxC6mgMnFP3szFlbSC7bj8o6l+z6CDtqDPCzfklJ2LKlYxom7vV8Y+/Q=="}
-{"alipay_user_info_share_response":{"code":"20001","msg":"Insufficient Token Permissions","sub_code":"aop.invalid-auth-token","sub_msg":"无效的访问令牌"},"sign":"fFtejz7s352L9iWGNp1/aSqG33oXGkt2Syj+Ik3zx0Qh2XkR+Lb/9O0OJ87VV4/WUQA21g8fVgyYSWPbv4dksIpJV55ubRO01LnyLddBBYzXuIph+WjTcWWk0OZktxqqAKvTu1zn65REwLSVNxVISL/KqhpesLXesMX3y84dlq3vgQ0AiVp7aG8+q7xGP6Jb4NwHZA6eY9RERNCRbNxYKZ+57CM85J6HxpebndzSCiyrnkCN+teOoiuk1ICrmEdDqLmF+A25SvroIOfrmMkGZTp1RLoVDkYdE/3M4B2YSxaXJqexpGsqkYStEfMkTV0CDA9GDs3hbfv392LSzjoTbQ=="}
-
-*/
-
 // Execute 执行请求并返回结果。
 // verifySign 表示是否需要同步验证签名，默认 `false` 不验证。
 func (e *DefaultExecutor) Execute(verifySign ...bool) *Response {

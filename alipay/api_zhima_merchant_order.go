@@ -106,24 +106,3 @@ func (c *Client) MerchantOrderRentQuery(outOrderNo string) *Executor {
 	return c.Execute(params, "zhima_merchant_order_rent_query_response")
 
 }
-
-/*
-state
-:
-"Y"
-invoke_state
-:
-undefined
-order_no
-:
-"10020027981"
-out_order_no
-:
-"2018101761217333128"
-resultStatus
-:
-9000
-user_id
-:
-"2088002463165793"
-*/
