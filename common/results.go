@@ -1,6 +1,8 @@
 package common
 
 import (
+	"encoding/json"
+
 	utils "github.com/junhwong/go-utils"
 )
 
@@ -38,7 +40,17 @@ func (r *DefaultResults) Get(key string) utils.Converter {
 	return utils.Convert(r.Params[key], r.Err, true)
 }
 func (r *DefaultResults) Bind(v interface{}, applyType ...string) error {
-	return nil
+	if r.Error() != nil {
+		return r.Error()
+	}
+	// var data []byte
+	// if r.Success(){
+	// 	data=[]byte(r.ResultString)
+	// }else {
+	// 	data=[]byte(r.ResultString)
+	// }
+	data := []byte(r.ResultString)
+	return json.Unmarshal(data, v)
 }
 func (r *DefaultResults) Error() error {
 	return r.Err
@@ -47,7 +59,7 @@ func (r *DefaultResults) Body() []byte {
 	return r.Data
 }
 func (r *DefaultResults) Success() bool {
-	return r.Code() == "10000"
+	return r.Error() == nil && r.Code() == "10000"
 }
 
 func (r *DefaultResults) Code() string {

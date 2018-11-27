@@ -17,8 +17,8 @@ type MiniProgramCreditBorrowParams struct {
 	ProductCode     string          `json:"product_code,omitempty"`
 	GoodsGame       string          `json:"goods_name,omitempty"`
 	RentUnit        string          `json:"rent_unit,omitempty"`
-	RentAmount      float64         `json:"rent_amount,omitempty"`
-	DepositAmount   float64         `json:"deposit_amount,omitempty"`
+	RentAmount      string          `json:"rent_amount,omitempty"`
+	DepositAmount   string          `json:"deposit_amount,omitempty"`
 	DepositState    string          `json:"deposit_state,omitempty"`
 	InvokeReturnURL string          `json:"invoke_return_url,omitempty"`
 	InvokeType      string          `json:"invoke_type,omitempty"`
@@ -45,7 +45,7 @@ func (p *MiniProgramCreditBorrowParams) String() (string, error) {
 
 //BuildMiniProgramCreditBorrowParams 构建信用借还的参数。接口文档：https://docs.alipay.com/mini/api/zmcreditborrow
 func (c *Client) BuildMiniProgramCreditBorrowParams(outOrderNo, goodsName string,
-	rentUnit string, rentAmount, depositAmount float64,
+	rentUnit string, rentAmount, depositAmount string,
 	invokeReturnPage, creditBiz string,
 	borrowTime, expiryTime time.Time) *MiniProgramCreditBorrowParams {
 
@@ -88,6 +88,14 @@ type MerchantOrderRentQueryResponse struct {
 // MerchantOrderRentQuery 芝麻信用借还提供的供商户查询借还订单详情。接口文档： https://docs.open.alipay.com/api_8/zhima.merchant.order.rent.query
 func (c *Client) MerchantOrderRentQuery(outOrderNo string) common.Executor {
 	return c.Build("zhima.merchant.order.rent.query", common.Params{
+		"out_order_no": outOrderNo,
+		"product_code": "w1010100000000002858",
+	})
+}
+
+// MerchantOrderRentCancel 芝麻信用借还订单撤销。接口文档： https://docs.open.alipay.com/api_8/zhima.merchant.order.rent.cancel/
+func (c *Client) MerchantOrderRentCancel(outOrderNo string) common.Executor {
+	return c.Build("zhima.merchant.order.rent.cancel", common.Params{
 		"out_order_no": outOrderNo,
 		"product_code": "w1010100000000002858",
 	})

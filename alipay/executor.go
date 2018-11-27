@@ -113,8 +113,10 @@ type Executor struct {
 
 func (e *Executor) Execute(verifySign ...bool) common.Results {
 	delete(e.Params, "sign")
-	ret := &common.DefaultResults{
-		Params: common.Params{},
+	ret := &ResponseResults{
+		DefaultResults: common.DefaultResults{
+			Params: common.Params{},
+		},
 	}
 	params := e.Params.Sort()
 	sign, err := sha256WithRSA(params.ToURLParams(false), e.client.PrivateKey)
@@ -157,36 +159,18 @@ func (e *Executor) Execute(verifySign ...bool) common.Results {
 // 	return data, res, err
 // }
 
-// type ResponseResults struct {
-// 	common.Params
-// 	Err          error
-// 	Data         []byte
-// 	ResultString string
-// 	SignString   string
-// }
+type ResponseResults struct {
+	common.DefaultResults
+}
 
-// func (r *ResponseResults) Set(key string, v interface{}, err error) common.Results {
-// 	return r
-// }
-// func (r *ResponseResults) Get(key string) utils.Converter {
-// 	return utils.Convert(r.Params[key], r.Err, true)
-// }
-// func (r *ResponseResults) Bind(v interface{}, applyType ...string) error {
-// 	return nil
-// }
-// func (r *ResponseResults) Error() error {
-// 	return r.Err
-// }
-// func (r *ResponseResults) Body() []byte {
-// 	return r.Data
-// }
-// func (r *ResponseResults) Success() bool {
-// 	return r.Code() == "10000"
-// }
+func (r *ResponseResults) Success() bool {
+	return r.Error() == nil && r.Code() == "10000"
+}
 
 // func (r *ResponseResults) Code() string {
 // 	return r.Get("code").String()
 // }
+
 // func (r *ResponseResults) Message() string {
 // 	return r.Get("msg").String()
 // }
