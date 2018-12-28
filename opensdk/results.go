@@ -1,21 +1,19 @@
-package common
+package opensdk
 
 import (
-	"encoding/json"
-
 	utils "github.com/junhwong/go-utils"
 )
 
 // Results 执行接口返回的响应结果。
 type Results interface {
 	// Set 重新设置结果中的某个值，以用于数据绑定。
-	Set(key string, v interface{}, err error) Results
+	// Set(key string, v interface{}, err error) Results
 	// Get 获取结果中的某个值。
 	Get(key string) utils.Converter
 	// Bind 绑定到一个结构体。
 	// applyType 绑定是字段匹配的类型, 值：default、json、xml。
-	Bind(v interface{}, applyType ...string) error
-	Sign() string
+	// Bind(v interface{}, applyType ...string) error
+	// Sign() string
 	Code() string
 	Message() string
 	SubCode() string
@@ -23,35 +21,44 @@ type Results interface {
 	Body() []byte
 	Error() error
 	Success() bool
+	Values() Params
 }
 
 type DefaultResults struct {
 	Params
-	Err          error
-	Data         []byte
-	ResultString string
-	SignString   string
+	Err           error
+	Data          []byte
+	ResultCode    string
+	ResultMsg     string
+	ResultSubCode string
+	ResultSubMsg  string
+	ResultSuccess bool
 }
 
-func (r *DefaultResults) Set(key string, v interface{}, err error) Results {
-	return r
+func (r *DefaultResults) Values() Params {
+	return r.Params
 }
+
+// func (r *DefaultResults) Set(key string, v interface{}, err error) Results {
+// 	return r
+// }
 func (r *DefaultResults) Get(key string) utils.Converter {
 	return utils.Convert(r.Params[key], r.Err, true)
 }
-func (r *DefaultResults) Bind(v interface{}, applyType ...string) error {
-	if r.Error() != nil {
-		return r.Error()
-	}
-	// var data []byte
-	// if r.Success(){
-	// 	data=[]byte(r.ResultString)
-	// }else {
-	// 	data=[]byte(r.ResultString)
-	// }
-	data := []byte(r.ResultString)
-	return json.Unmarshal(data, v)
-}
+
+// func (r *DefaultResults) Bind(v interface{}, applyType ...string) error {
+// 	if r.Error() != nil {
+// 		return r.Error()
+// 	}
+// 	// var data []byte
+// 	// if r.Success(){
+// 	// 	data=[]byte(r.ResultString)
+// 	// }else {
+// 	// 	data=[]byte(r.ResultString)
+// 	// }
+// 	data := []byte(r.ResultString)
+// 	return json.Unmarshal(data, v)
+// }
 func (r *DefaultResults) Error() error {
 	return r.Err
 }
@@ -59,24 +66,42 @@ func (r *DefaultResults) Body() []byte {
 	return r.Data
 }
 func (r *DefaultResults) Success() bool {
-	return r.Error() == nil && r.Code() == "10000"
+	return r.Err == nil && r.ResultSuccess
 }
 
 func (r *DefaultResults) Code() string {
-	return r.Get("code").String()
+	return r.ResultCode
 }
 func (r *DefaultResults) Message() string {
-	return r.Get("msg").String()
+	return r.ResultMsg
 }
 func (r *DefaultResults) SubCode() string {
-	return r.Get("sub_code").String()
+	return r.ResultSubCode
 }
 func (r *DefaultResults) SubMessage() string {
-	return r.Get("sub_msg").String()
+	return r.ResultSubMsg
 }
-func (r *DefaultResults) Sign() string {
-	return r.SignString
-}
+
+// func (r *DefaultResults) Success() bool {
+// 	return r.Error() == nil && r.Code() == "10000"
+// }
+
+// func (r *DefaultResults) Code() string {
+// 	return r.Get("code").String()
+// }
+// func (r *DefaultResults) Message() string {
+// 	return r.Get("msg").String()
+// }
+// func (r *DefaultResults) SubCode() string {
+// 	return r.Get("sub_code").String()
+// }
+// func (r *DefaultResults) SubMessage() string {
+// 	return r.Get("sub_msg").String()
+// }
+
+// func (r *DefaultResults) Sign() string {
+// 	return r.SignString
+// }
 
 // Default 执行接口返回的响应。
 // type Response struct {

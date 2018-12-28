@@ -189,11 +189,6 @@ func sha256WithRSA(origData string, key *rsa.PrivateKey) (string, error) {
 }
 
 func verifyRSA2(src, sign string, pub *rsa.PublicKey) error {
-	//fmt.Println("=========")
-	//fmt.Println(src)
-	//fmt.Println("=========")
-	//fmt.Println(sign)
-	//fmt.Println("=========")
 	hash := sha256.New()
 	hash.Write([]byte(src))
 	digest := hash.Sum(nil)
