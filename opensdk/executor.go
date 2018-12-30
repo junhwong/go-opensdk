@@ -19,9 +19,9 @@ type Executor interface {
 	// Execute 执行请求并返回结果。
 	// verifySign 表示是否需要同步验证签名，默认 `false` 不验证。
 	Execute(verifySign ...bool) Results
-	SetNotifyURL(url string, filedName ...string) //设置支付宝服务器主动通知商户服务器里指定的页面http/https路径。
-	UseTLS(b bool) Executor                       // 是否需要双向认证
-	UseXML(b bool) Executor                       //是否使用xml作为接口数据交换格式
+	SetNotifyURL(url string, filedName ...string) Executor //设置支付宝服务器主动通知商户服务器里指定的页面http/https路径。
+	UseTLS(b bool) Executor                                // 是否需要双向认证
+	UseXML(b bool) Executor                                //是否使用xml作为接口数据交换格式
 	ResultValidator(f func(Params) (ok bool, code string, msg string, subcode string, submsg string)) Executor
 	Set(filed string, value interface{}) Executor
 }
@@ -109,12 +109,13 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 }
 
 //SetNotifyURL 设置接口服务器主动通知调用服务器里指定的页面http/https路径。
-func (e *DefaultExecutor) SetNotifyURL(url string, filedName ...string) {
+func (e *DefaultExecutor) SetNotifyURL(url string, filedName ...string) Executor {
 	filed := "notify_url"
 	if len(filedName) > 0 && filedName[0] != "" {
 		filed = filedName[0]
 	}
 	e.Params[filed] = url
+	return e
 }
 
 func DefaultDecoder(data []byte, dataFormat string, out *Params) (err error) {

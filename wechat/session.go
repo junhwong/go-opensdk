@@ -12,10 +12,10 @@ import (
 
 // MiniProgramLoginParams 小程序登录时的参数。
 type MiniProgramLoginParams struct {
-	Code          string `json:"code"`
-	Signature     string `json:"signature"`
-	Iv            string `json:"iv"`
-	EncryptedData string `json:"encryptedData"`
+	Code          string `json:"code" form:"code"`
+	Signature     string `json:"signature" form:"signature"`
+	Iv            string `json:"iv" form:"iv"`
+	EncryptedData string `json:"encryptedData" form:"encryptedData"`
 }
 
 // UserInfo 小程序加密用户信息。

@@ -72,3 +72,17 @@ func (c *WechatPayClient) RefundQuery(transactionID, outTradeNo, outRefundNo, re
 		"refund_id":      refundID,      // 退款单号
 	}).UseXML(true)
 }
+
+//BuildMiniProgramRequestPaymentParams 构建小程序调起支付API参数。接口文档：https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=7_7&index=5
+func (c *WechatPayClient) BuildMiniProgramRequestPaymentParams(prepayID string) (params opensdk.Params, err error) {
+	params = opensdk.Params{
+		"appId":     c.AppID,
+		"timeStamp": time.Now().Unix(),
+		"nonceStr":  opensdk.RandomString(10),
+		"package":   "prepay_id=" + prepayID,
+		"signType":  "MD5",
+	}
+	params["paySign"], err = c.Sign(params.Sort().ToURLParams(), params.Get("signType").String())
+	delete(params, "appId")
+	return
+}
