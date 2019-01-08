@@ -68,15 +68,16 @@ func (p Params) Sort() Pairs {
 			val = Params(m).Sort().ToJSON()
 		} else {
 			if s, ok := v.(string); ok {
-				if strings.HasPrefix(s, `{`) && strings.HasSuffix(s, `}`) {
-					//结构JSON字符串,重新排序
-					sub := Params{}
-					if err := json.Unmarshal([]byte(s), &sub); err == nil {
-						val = sub.Sort().ToJSON()
-					}
-				} else {
-					val = s
-				}
+				// if strings.HasPrefix(s, `{`) && strings.HasSuffix(s, `}`) {
+				// 	//结构JSON字符串,重新排序
+				// 	sub := Params{}
+				// 	if err := json.Unmarshal([]byte(s), &sub); err == nil {
+				// 		val = sub.Sort().ToJSON()
+				// 	}
+				// } else {
+				// 	val = s
+				// }
+				val = s
 			} else {
 				// val = fmt.Sprint(v)
 				if d, err := json.Marshal(v); err != nil {

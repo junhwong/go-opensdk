@@ -1,18 +1,12 @@
 package alipay
 
 import (
-	"bytes"
 	gocrypto "crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
-	"io"
-	"io/ioutil"
 	"regexp"
-
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/transform"
 )
 
 var regResult = regexp.MustCompile(`(^\{\"[a-z|_]+\":)|(,\"sign\":\"[a-zA-Z0-9|\+|\/|\=]+\"\}$)`)
@@ -199,32 +193,6 @@ func verifyRSA2(src, sign string, pub *rsa.PublicKey) error {
 	// hex.EncodeToString(data)
 
 	return rsa.VerifyPKCS1v15(pub, gocrypto.SHA256, digest, data)
-}
-
-func toGBK(src []byte) io.Reader {
-	return transform.NewReader(bytes.NewReader(src), simplifiedchinese.GBK.NewEncoder())
-}
-
-func toGBKData(src []byte) []byte {
-	r := toGBK(src)
-	data, err := ioutil.ReadAll(r)
-	if err != nil {
-		panic(err)
-	}
-	return data
-}
-
-func toUTF8(src []byte) io.Reader {
-	return transform.NewReader(bytes.NewReader(src), simplifiedchinese.GBK.NewDecoder())
-}
-
-func toUTF8Data(src []byte) []byte {
-	r := toUTF8(src)
-	data, err := ioutil.ReadAll(r)
-	if err != nil {
-		panic(err)
-	}
-	return data
 }
 
 // func MapToSortString(params map[string]string, ignoreEmpty, ignoreZero bool) string {

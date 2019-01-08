@@ -2,7 +2,6 @@ package alipay
 
 import (
 	"crypto/rsa"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -59,16 +58,46 @@ func NewClient(gateway, appID, privateKeyPath, alipayPublicKeyPath string) *Clie
 	return c
 }
 
-func (c *Client) Build(methodOrURL string, params opensdk.Params) opensdk.Executor {
-
-	params["method"] = methodOrURL
+// 填充通用参数
+func (c *Client) fillParams(method string, params opensdk.Params) {
+	params["sdk"] = "go-opensdk-0.0.1.DEV" // TODO: 版本号
+	params["method"] = method
 	params["app_id"] = c.AppID
 	params["format"] = "json"
 	params["charset"] = "utf-8"
 	params["version"] = "1.0"
 	params["sign_type"] = "RSA2"
 	params["timestamp"] = time.Now().Format("2006-01-02 15:04:05")
+}
 
+func (c *Client) Build(methodOrURL string, params opensdk.Params) opensdk.Executor {
+
+	c.fillParams(methodOrURL, params)
+
+	e := &opensdk.DefaultExecutor{
+		Params:     params,
+		Client:     c,
+		APIURL:     c.Gateway,
+		HTTPMethod: "POST",
+	}
+	e.Request = c.doRequest
+	return e.ResultValidator(func(p opensdk.Params) (ok bool, code string, msg string, subcode string, submsg string) {
+		code = p.Get("code").String()
+		msg = p.Get("msg").String()
+		subcode = p.Get("sub_code").String()
+		submsg = p.Get("sub_msg").String()
+
+		if code == "10000" {
+			ok = true
+		}
+		return
+	})
+}
+
+func (c *Client) buildWithBizContent(method string, biz opensdk.Params) opensdk.Executor {
+	params := opensdk.Params{}
+	c.fillParams(method, params)
+	params["biz_content"] = biz
 	e := &opensdk.DefaultExecutor{
 		Params:     params,
 		Client:     c,
@@ -110,17 +139,18 @@ func (c *Client) doRequest(def *opensdk.DefaultExecutor) (response *http.Respons
 	params.Append("sign", sign)
 	body := params.ToURLParams(true)
 	log += "\nbody:" + body
+	// fmt.Println(params.ToURLParams(false))
+	// fmt.Println(body)
 	def.Decoder = func(data []byte, dataFormat string, out *opensdk.Params) (err error) {
 		dataStr, signStr := extract(data) // 分离结果和签名
 		(*out)["sign"] = signStr
 
-		reader := toUTF8([]byte(dataStr)) // 支付宝返回编码是GBK，不管传递参数是不是GBK。是BUG?
-		newData, err := ioutil.ReadAll(reader)
+		newData, err := opensdk.ToUTF8Data([]byte(dataStr)) // 支付宝返回编码是GBK，不管传递参数是不是GBK。是BUG?
+		// newData, err := ioutil.ReadAll(reader)
 		if err != nil {
-			if err != io.EOF {
-				return err
-			}
+			return err
 		}
+
 		return opensdk.DefaultDecoder(newData, dataFormat, out)
 	}
 	resp, err := http.Post(def.APIURL, "application/x-www-form-urlencoded", strings.NewReader(body)) // TODO: HTTP METHOD

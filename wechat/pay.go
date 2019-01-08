@@ -48,10 +48,10 @@ func (c *WechatPayClient) CloseOrder(outTradeNo string) opensdk.Executor {
 	}).UseXML(true)
 }
 
-// Refund 申请退款。接口文档：https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_3
+// Refund 申请退款。接口文档：https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_4
 //
 // 结果通知：https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_16&index=10
-func (c *WechatPayClient) Refund(transactionID, outTradeNo, outRefundNo string, totalFee, refundFee int64) opensdk.Executor {
+func (c *WechatPayClient) Refund(transactionID, outTradeNo, outRefundNo string, totalFee, refundFee int64, refundDesc string) opensdk.Executor {
 	return c.buildPOST("https://api.mch.weixin.qq.com/secapi/pay/refund", opensdk.Params{
 		"transaction_id":  transactionID, // 微信的订单号，优先使用
 		"out_trade_no":    outTradeNo,    // 商户系统内部订单号
@@ -59,11 +59,11 @@ func (c *WechatPayClient) Refund(transactionID, outTradeNo, outRefundNo string, 
 		"total_fee":       totalFee,      // 订单总金额
 		"refund_fee":      refundFee,     // 退款总金额
 		"refund_fee_type": "CNY",         // 货币类型
-		"refund_desc":     "refund_desc", // 退款原因
+		"refund_desc":     refundDesc,    // 退款原因
 	}).UseXML(true).UseTLS(true)
 }
 
-// RefundQuery 查询退款。接口文档：https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_3
+// RefundQuery 查询退款。接口文档：https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_5
 func (c *WechatPayClient) RefundQuery(transactionID, outTradeNo, outRefundNo, refundID string) opensdk.Executor {
 	return c.buildPOST("https://api.mch.weixin.qq.com/pay/refundquery", opensdk.Params{
 		"transaction_id": transactionID, // 微信的订单号，优先使用
@@ -77,7 +77,7 @@ func (c *WechatPayClient) RefundQuery(transactionID, outTradeNo, outRefundNo, re
 func (c *WechatPayClient) BuildMiniProgramRequestPaymentParams(prepayID string) (params opensdk.Params, err error) {
 	params = opensdk.Params{
 		"appId":     c.AppID,
-		"timeStamp": time.Now().Unix(),
+		"timeStamp": fmt.Sprintf("%d", time.Now().Unix()),
 		"nonceStr":  opensdk.RandomString(10),
 		"package":   "prepay_id=" + prepayID,
 		"signType":  "MD5",

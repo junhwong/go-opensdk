@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -66,20 +67,22 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 	if r.Err != nil {
 		return
 	}
-	// defer func() {
-	// 	if x := recover(); x != nil {
-	// 		if err, ok := x.(error); ok {
-	// 			r.Err = err
-	// 		} else {
-	// 			log.Print(x)
-	// 		}
-	// 	}
-	// 	// 日志
-	// }()
+	var requestLog string
+	defer func() {
+		if x := recover(); x != nil {
+			if err, ok := x.(error); ok {
+				r.Err = err
+			} else {
+				log.Println(x)
+			}
+		}
+		// 日志
+		log.Println(requestLog)
+	}()
 
 	// TODO: 计时
-	// var log string
-	response, _, err := e.Request(e)
+
+	response, requestLog, err := e.Request(e)
 	if err != nil {
 		panic(err)
 	}
@@ -87,6 +90,7 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 	if response.Body != nil {
 		response.Body.Close()
 	}
+
 	if r.Err == io.EOF {
 		e.Err = nil
 	}
