@@ -12,6 +12,7 @@ import (
 //
 // 预授权类目：https://docs.open.alipay.com/10719
 func (c *Client) FundAuthOrderAppFreezeRequest(outOrderNo, outRequestNo, orderTitle string, amount string, payeeUserID string, extraParam opensdk.Params, notifyURL string) (params opensdk.Params, err error) {
+
 	params = opensdk.Params{
 
 		"out_order_no":        outOrderNo,
@@ -33,17 +34,19 @@ func (c *Client) FundAuthOrderAppFreezeRequest(outOrderNo, outRequestNo, orderTi
 
 // FundAuthOrderUnfreeze 资金授权解冻接口。接口文档： https://docs.open.alipay.com/api_28/alipay.fund.auth.order.unfreeze
 func (c *Client) FundAuthOrderUnfreeze(outRequestNo, authNo, remark string, amount string) opensdk.Executor {
+	remark = string(opensdk.ToGBKData([]byte(remark))) // 支付宝内部使用 GBK编码
 	return c.buildWithBizContent("alipay.fund.auth.order.unfreeze", opensdk.Params{
 		"out_request_no": outRequestNo,
 		"auth_no":        authNo,
 		"remark":         remark,
-		"amount":         amount, // 解冻的金额
-		// "extra_param":    `{"unfreezeBizInfo":{\"bizComplete\":\"true\"}}`, // 是否履约, 小程序不能传参
+		"amount":         amount,                                                         // 解冻的金额
+		"extra_param":    `{\"unfreezeBizInfo\":\"{\\\"bizComplete\\\":\\\"true\\\"}\"}`, // 是否履约
 	})
 }
 
 // FundAuthOperationCancel 资金授权撤销接口。接口文档： https://docs.open.alipay.com/api_28/alipay.fund.auth.operation.cancel
 func (c *Client) FundAuthOperationCancel(outOrderNo, outRequestNo string, remark string) opensdk.Executor {
+	remark = string(opensdk.ToGBKData([]byte(remark))) // 支付宝内部使用 GBK编码
 	return c.buildWithBizContent("alipay.fund.auth.operation.cancel", opensdk.Params{
 		"out_order_no":   outOrderNo,
 		"out_request_no": outRequestNo,

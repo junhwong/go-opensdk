@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
+
+	"github.com/junhwong/go-opensdk/opensdk"
 
 	"github.com/junhwong/go-utils/crypto"
 )
@@ -90,4 +93,89 @@ func (c *WechatClient) MiniProgramLogin(params *MiniProgramLoginParams) (u *User
 		}
 	}
 	return
+}
+
+type AccessTokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
+	Ticket       string `json:"ticket"`
+	OpenID       string `json:"openid"`
+	UnionID      string `json:"unionid"`
+	Scope        string `json:"scope"`
+	ErrCode      int    `json:"errcode"`
+	ErrMsg       string `json:"errmsg"`
+}
+
+// CodeToAccessToken 文档 https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140842
+func (c *WechatClient) CodeToAccessToken(code string) (*AccessTokenResponse, error) {
+	res, err := http.Get("https://api.weixin.qq.com/sns/oauth2/access_token?appid=" + c.AppID + "&secret=" + c.Secret + "&code=" + code + "&grant_type=authorization_code")
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	var sess AccessTokenResponse
+	err = json.Unmarshal(body, &sess)
+	return &sess, err
+}
+
+// GetAccessToken 文档 https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140183
+func (c *WechatClient) GetAccessToken() (*AccessTokenResponse, error) {
+	res, err := http.Get("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + c.AppID + "&secret=" + c.Secret)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	var sess AccessTokenResponse
+	err = json.Unmarshal(body, &sess)
+	return &sess, err
+}
+
+// GetTicket 文档 https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421141115
+func (c *WechatClient) GetTicket(token string) (*AccessTokenResponse, error) {
+	res, err := http.Get("https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=" + token + "&type=jsapi")
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	var sess AccessTokenResponse
+	err = json.Unmarshal(body, &sess)
+	return &sess, err
+}
+
+// SendTemplateMessage 文档 https://developers.weixin.qq.com/miniprogram/dev/api/sendTemplateMessage.html
+func (c *WechatClient) SendTemplateMessage(token, openID, templateID, formID, page, emphasisKeyword string, data opensdk.Params) ([]byte, error) {
+	params := opensdk.Params{
+		"access_token":     token,
+		"touser":           openID,
+		"template_id":      templateID,
+		"page":             page,
+		"form_id":          formID,
+		"data":             data,
+		"emphasis_keyword": emphasisKeyword,
+	}
+	requestBody := params.Sort(true).ToJSON(true)
+	fmt.Println(requestBody)
+	res, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token="+token, "application/json", strings.NewReader(requestBody))
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	return body, err
 }

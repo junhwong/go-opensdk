@@ -2,7 +2,6 @@ package wechat
 
 import (
 	"crypto/tls"
-	"errors"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -36,6 +35,10 @@ func (c *WechatPayClient) buildPOST(url string, params opensdk.Params) opensdk.E
 	params["nonce_str"] = opensdk.RandomString(10)
 	params["sign_type"] = "MD5"
 
+	return c.BuildExecutor(url, params)
+}
+
+func (c *WechatPayClient) BuildExecutor(url string, params opensdk.Params) opensdk.Executor {
 	e := opensdk.DefaultExecutor{
 		Params:     params,
 		Client:     c,
@@ -60,10 +63,12 @@ func (c *WechatPayClient) Sign(params, signType string) (string, error) {
 	switch signType {
 	case "HMAC-SHA256":
 		return opensdk.Sha256Hmac(params, nil) // TODO: key
-	case "MD5":
+	case "SHA1":
+		return opensdk.Sha1(params)
+	default:
 		return opensdk.MD5(params + "&key=" + c.MchKey)
 	}
-	return "", errors.New("签名算法不支持：" + signType)
+	// return "", errors.New("签名算法不支持：" + signType)
 }
 func (c *WechatPayClient) VerifySign(params, signType string) (bool, error) {
 	return false, nil
@@ -98,6 +103,7 @@ func (c *WechatPayClient) doRequest(def *opensdk.DefaultExecutor) (response *htt
 		return nil, log, err
 	}
 	signType := def.Get("sign_type").String()
+	// delete(def.Params, "sign_type")
 	params := def.Params.Sort()
 	log += "URL:" + def.APIURL
 	log += "\nsign params:" + params.ToURLParams()
@@ -105,6 +111,8 @@ func (c *WechatPayClient) doRequest(def *opensdk.DefaultExecutor) (response *htt
 	if err != nil {
 		return nil, log, err
 	}
+	// delete(def.Params, "sign_type")
+	// params = def.Params.Sort()
 	params.Append("sign", sign)
 	body := params.ToXML()
 	log += "\n"

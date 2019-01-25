@@ -6,6 +6,7 @@ import "github.com/junhwong/go-opensdk/opensdk"
 //
 // 注意：该方法默认为预授权转支付参数与官方API文档有差异。参考：https://docs.alipay.com/mini/introduce/pre-authorization
 func (c *Client) TradePay(outTradeNo, authNo, subject string, amount string, storeID string, sellerID, buyerID string) opensdk.Executor {
+	subject = string(opensdk.ToGBKData([]byte(subject))) // 支付宝内部使用 GBK编码
 	return c.buildWithBizContent("alipay.trade.pay", opensdk.Params{
 		"out_trade_no":      outTradeNo, // 新的交易流水号
 		"auth_no":           authNo,     // 授权号

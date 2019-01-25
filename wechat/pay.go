@@ -86,3 +86,33 @@ func (c *WechatPayClient) BuildMiniProgramRequestPaymentParams(prepayID string) 
 	delete(params, "appId")
 	return
 }
+
+// MMPayTransfer 企业向微信用户个人付款。接口文档：https://pay.weixin.qq.com/wiki/doc/api/tools/mch_pay.php?chapter=14_2
+func (c *WechatPayClient) MMPayTransfer(partnerTradeNo, openID, reUserName, desc, spbillIP string, amount int64) opensdk.Executor {
+	checkName := "NO_CHECK"
+	if reUserName != "" {
+		checkName = "FORCE_CHECK"
+	}
+	return c.BuildExecutor("https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers", opensdk.Params{
+		"nonce_str":        opensdk.RandomString(10),
+		"mchid":            c.MchID,
+		"mch_appid":        c.AppID,
+		"partner_trade_no": partnerTradeNo,
+		"openid":           openID, // 商户appid下，某用户的openid
+		"check_name":       checkName,
+		"re_user_name":     reUserName,
+		"amount":           amount,
+		"desc":             desc,
+		"spbill_create_ip": spbillIP,
+	}).UseXML(true).UseTLS(true)
+}
+
+// MMPayQuery 查询企业付款。接口文档：https://pay.weixin.qq.com/wiki/doc/api/tools/mch_pay.php?chapter=14_3
+func (c *WechatPayClient) MMPayQuery(partnerTradeNo string) opensdk.Executor {
+	return c.BuildExecutor("https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo", opensdk.Params{
+		"nonce_str":        opensdk.RandomString(10),
+		"mch_id":           c.MchID,
+		"appid":            c.AppID,
+		"partner_trade_no": partnerTradeNo,
+	}).UseXML(true).UseTLS(true)
+}

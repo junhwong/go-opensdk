@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
@@ -31,6 +32,15 @@ func Sha256RSA(origData string, key *rsa.PrivateKey) (string, error) {
 	}
 	data := base64.StdEncoding.EncodeToString(s)
 	return string(data), nil
+}
+
+func Sha1(s string) (string, error) {
+	h := sha1.New()
+	_, err := io.WriteString(h, s)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
 func MD5(s string) (string, error) {

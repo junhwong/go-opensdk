@@ -57,15 +57,15 @@ func (m *Params) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	return nil
 }
 
-func (p Params) Sort() Pairs {
+func (p Params) Sort(isNesting ...bool) Pairs {
 	arr := Pairs{}
 	for _, key := range p.getKeys() {
 		v := p[key]
 		val := ""
 		if m, ok := v.(Params); ok {
-			val = m.Sort().ToJSON()
+			val = m.Sort(isNesting...).ToJSON(isNesting...)
 		} else if m, ok := v.(map[string]interface{}); ok {
-			val = Params(m).Sort().ToJSON()
+			val = Params(m).Sort(isNesting...).ToJSON(isNesting...)
 		} else {
 			if s, ok := v.(string); ok {
 				// if strings.HasPrefix(s, `{`) && strings.HasSuffix(s, `}`) {
@@ -118,14 +118,19 @@ func (p Pairs) ToURLParams(urlencode ...bool) string {
 	return strings.Join(arr, "&")
 }
 
-func (p Pairs) ToJSON() string {
+func (p Pairs) ToJSON(isNesting ...bool) string {
 	arr := []string{}
 	for _, it := range p {
 		// val := it[1]
 		// if !(strings.HasPrefix(val, `"`) && strings.HasSuffix(val, `"`)) {
 		// 	val = `"` + it[1] + `"`
 		// }
-		arr = append(arr, `"`+it[0]+`":`+`"`+it[1]+`"`)
+		if (len(isNesting) > 0 && isNesting[0]) && (strings.HasPrefix(it[1], `{`) && strings.HasSuffix(it[1], `}`)) {
+			arr = append(arr, `"`+it[0]+`":`+it[1])
+		} else {
+			arr = append(arr, `"`+it[0]+`":`+`"`+it[1]+`"`)
+		}
+
 	}
 	return `{` + strings.Join(arr, ",") + `}`
 }
