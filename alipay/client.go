@@ -23,12 +23,16 @@ import (
 // }
 
 type Client struct {
-	AppID      string
-	PrivateKey *rsa.PrivateKey
-	PublicKey  *rsa.PublicKey
-	Gateway    string
+	AppID          string
+	PrivateKey     *rsa.PrivateKey
+	PublicKey      *rsa.PublicKey
+	Gateway        string
+	httpClientFunc func(useTLS bool) (*http.Client, error)
 }
 
+func (c *Client) SetHttpClientFunc(fn func(twowayAuthentication bool) (*http.Client, error)) {
+	c.httpClientFunc = fn
+}
 func NewClient(gateway, appID, privateKeyPath, alipayPublicKeyPath string) *Client {
 	c := &Client{
 		AppID:   appID,
@@ -127,11 +131,21 @@ func (c *Client) Sign(params, signType string) (string, error) {
 func (c *Client) VerifySign(params, signType string) (bool, error) {
 	return false, nil
 }
-
+func (c *Client) getHttpClient(useTLS bool) (*http.Client, error) {
+	if c.httpClientFunc != nil {
+		return c.httpClientFunc(useTLS)
+	}
+	return http.DefaultClient, nil
+}
 func (c *Client) doRequest(def *opensdk.DefaultExecutor) (response *http.Response, requestLog string, err error) {
+	log := ""
+	hc, err := c.getHttpClient(def.TLS)
+	if err != nil {
+		return nil, log, err
+	}
 	signType := def.Get("sign_type").String()
 	params := def.Params.Sort()
-	log := "sign params:" + params.ToURLParams()
+	log = "sign params:" + params.ToURLParams()
 	sign, err := c.Sign(params.ToURLParams(), signType)
 	if err != nil {
 		return nil, log, err
@@ -153,6 +167,6 @@ func (c *Client) doRequest(def *opensdk.DefaultExecutor) (response *http.Respons
 
 		return opensdk.DefaultDecoder(newData, dataFormat, out)
 	}
-	resp, err := http.Post(def.APIURL, "application/x-www-form-urlencoded", strings.NewReader(body)) // TODO: HTTP METHOD
+	resp, err := hc.Post(def.APIURL, "application/x-www-form-urlencoded", strings.NewReader(body)) // TODO: HTTP METHOD
 	return resp, log, err
 }

@@ -10,8 +10,19 @@ import (
 )
 
 type WechatClient struct {
-	AppID  string //微信分配的小程序ID
-	Secret string
+	AppID          string //微信分配的小程序ID
+	Secret         string
+	httpClientFunc func(useTLS bool) (*http.Client, error)
+}
+
+func (c *WechatClient) SetHttpClientFunc(fn func(twowayAuthentication bool) (*http.Client, error)) {
+	c.httpClientFunc = fn
+}
+func (c *WechatClient) getHttpClient(useTLS bool) (*http.Client, error) {
+	if c.httpClientFunc != nil {
+		return c.httpClientFunc(useTLS)
+	}
+	return http.DefaultClient, nil
 }
 
 type WechatPayClient struct {
@@ -74,7 +85,10 @@ func (c *WechatPayClient) VerifySign(params, signType string) (bool, error) {
 	return false, nil
 }
 
-func (c *WechatPayClient) getHttpClient(useTLS bool) (*http.Client, error) {
+func (c *WechatPayClient) getPayHttpClient(useTLS bool) (*http.Client, error) {
+	if c.httpClientFunc != nil {
+		return c.httpClientFunc(useTLS)
+	}
 	if !useTLS {
 		return http.DefaultClient, nil
 	}
@@ -84,7 +98,7 @@ func (c *WechatPayClient) getHttpClient(useTLS bool) (*http.Client, error) {
 			return nil, err
 		}
 		// 将pkcs12证书转成pem
-		cert := pkcs12ToPem(certData, c.MchID)
+		cert := opensdk.PKCS12ToPem(certData, c.MchID)
 		transport := &http.Transport{
 			TLSClientConfig: &tls.Config{
 				Certificates: []tls.Certificate{cert},
@@ -98,7 +112,7 @@ func (c *WechatPayClient) getHttpClient(useTLS bool) (*http.Client, error) {
 
 func (c *WechatPayClient) doRequest(def *opensdk.DefaultExecutor) (response *http.Response, requestLog string, err error) {
 	log := ""
-	hc, err := c.getHttpClient(def.TLS)
+	hc, err := c.getPayHttpClient(def.TLS)
 	if err != nil {
 		return nil, log, err
 	}

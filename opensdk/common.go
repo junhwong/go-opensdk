@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"io"
+	"net/http"
 	"net/url"
 	"sort"
 	"strings"
@@ -15,6 +16,7 @@ import (
 type Client interface {
 	Sign(params, signType string) (string, error)
 	VerifySign(params, signType string) (bool, error)
+	SetHttpClientFunc(fn func(twowayAuthentication bool) (*http.Client, error))
 }
 
 type Params map[string]interface{}
