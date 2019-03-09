@@ -54,7 +54,7 @@ func decryptData(sessionKey, iv, encryptedData string) ([]byte, error) {
 
 //JSCode2Session 文档 https://developers.weixin.qq.com/miniprogram/dev/api/open-api/login/code2Session.html
 func (c *WechatClient) JSCode2Session(code string) (*MiniProgramLoginSession, error) {
-	hc, err := c.getHttpClient(false)
+	hc, err := c.HttpClient(false)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ type AccessTokenResponse struct {
 
 // CodeToAccessToken 文档 https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140842
 func (c *WechatClient) CodeToAccessToken(code string) (*AccessTokenResponse, error) {
-	hc, err := c.getHttpClient(false)
+	hc, err := c.HttpClient(false)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (c *WechatClient) CodeToAccessToken(code string) (*AccessTokenResponse, err
 
 // GetAccessToken 文档 https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140183
 func (c *WechatClient) GetAccessToken() (*AccessTokenResponse, error) {
-	hc, err := c.getHttpClient(false)
+	hc, err := c.HttpClient(false)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func (c *WechatClient) GetAccessToken() (*AccessTokenResponse, error) {
 
 // GetTicket 文档 https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421141115
 func (c *WechatClient) GetTicket(token string) (*AccessTokenResponse, error) {
-	hc, err := c.getHttpClient(false)
+	hc, err := c.HttpClient(false)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (c *WechatClient) SendTemplateMessage(token, openID, templateID, formID, pa
 		"emphasis_keyword": emphasisKeyword,
 	}
 	requestBody := params.Sort(true).ToJSON(true)
-	hc, err := c.getHttpClient(false)
+	hc, err := c.HttpClient(false)
 	if err != nil {
 		return nil, err
 	}

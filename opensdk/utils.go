@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"strconv"
 	"time"
 
 	"github.com/golang/crypto/pkcs12"
+	log "github.com/junhwong/go-logs"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 )

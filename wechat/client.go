@@ -1,42 +1,39 @@
 package wechat
 
 import (
-	"crypto/tls"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
+	logs "github.com/junhwong/go-logs"
 	"github.com/junhwong/go-opensdk/opensdk"
 )
 
 type WechatClient struct {
-	AppID          string //微信分配的小程序ID
-	Secret         string
-	httpClientFunc func(useTLS bool) (*http.Client, error)
-}
-
-func (c *WechatClient) SetHttpClientFunc(fn func(twowayAuthentication bool) (*http.Client, error)) {
-	c.httpClientFunc = fn
-}
-func (c *WechatClient) getHttpClient(useTLS bool) (*http.Client, error) {
-	if c.httpClientFunc != nil {
-		return c.httpClientFunc(useTLS)
-	}
-	return http.DefaultClient, nil
-}
-
-type WechatPayClient struct {
-	WechatClient
-	APICertFile string
-	MchID       string // 微信支付分配的商户号
-	MchKey      string
-	tlsClient   *http.Client
+	opensdk.ClientBase
+	AppID  string //微信分配的小程序ID
+	Secret string
 }
 
 func NewClient(appid, secret string) *WechatClient {
 	return &WechatClient{
-		AppID:  appid,
-		Secret: secret,
+		ClientBase: opensdk.ClientBase{},
+		AppID:      appid,
+		Secret:     secret,
+	}
+}
+
+type WechatPayClient struct {
+	WechatClient
+	APICertFile string // 过时
+	MchID       string // 微信支付分配的商户号
+	MchKey      string
+}
+
+func NewPayClient(appid, secret, mchID, mchKey string) *WechatPayClient {
+	return &WechatPayClient{
+		WechatClient: *NewClient(appid, secret),
+		MchID:        mchID,
+		MchKey:       mchKey,
 	}
 }
 
@@ -56,7 +53,7 @@ func (c *WechatPayClient) BuildExecutor(url string, params opensdk.Params) opens
 		HTTPMethod: "POST",
 		APIURL:     url,
 	}
-	e.Request = c.doRequest
+	e.BuildRequest = c.doRequest
 	return e.ResultValidator(func(p opensdk.Params) (ok bool, code string, msg string, subcode string, submsg string) {
 		code = p.Get("return_code").String()
 		msg = p.Get("return_msg").String()
@@ -81,41 +78,13 @@ func (c *WechatPayClient) Sign(params, signType string) (string, error) {
 	}
 	// return "", errors.New("签名算法不支持：" + signType)
 }
-func (c *WechatPayClient) VerifySign(params, signType string) (bool, error) {
+
+func (c *WechatClient) VerifySign(params, signType string) (bool, error) {
 	return false, nil
 }
 
-func (c *WechatPayClient) getPayHttpClient(useTLS bool) (*http.Client, error) {
-	if c.httpClientFunc != nil {
-		return c.httpClientFunc(useTLS)
-	}
-	if !useTLS {
-		return http.DefaultClient, nil
-	}
-	if c.tlsClient == nil {
-		certData, err := ioutil.ReadFile(c.APICertFile)
-		if err != nil {
-			return nil, err
-		}
-		// 将pkcs12证书转成pem
-		cert := opensdk.PKCS12ToPem(certData, c.MchID)
-		transport := &http.Transport{
-			TLSClientConfig: &tls.Config{
-				Certificates: []tls.Certificate{cert},
-			},
-			DisableCompression: true,
-		}
-		c.tlsClient = &http.Client{Transport: transport}
-	}
-	return c.tlsClient, nil
-}
-
-func (c *WechatPayClient) doRequest(def *opensdk.DefaultExecutor) (response *http.Response, requestLog string, err error) {
+func (c *WechatPayClient) doRequest(def *opensdk.DefaultExecutor) (req *http.Request, err error) {
 	log := ""
-	hc, err := c.getPayHttpClient(def.TLS)
-	if err != nil {
-		return nil, log, err
-	}
 	signType := def.Get("sign_type").String()
 	// delete(def.Params, "sign_type")
 	params := def.Params.Sort()
@@ -123,7 +92,7 @@ func (c *WechatPayClient) doRequest(def *opensdk.DefaultExecutor) (response *htt
 	log += "\nsign params:" + params.ToURLParams()
 	sign, err := c.Sign(params.ToURLParams(), signType)
 	if err != nil {
-		return nil, log, err
+		return nil, err
 	}
 	// delete(def.Params, "sign_type")
 	// params = def.Params.Sort()
@@ -132,6 +101,11 @@ func (c *WechatPayClient) doRequest(def *opensdk.DefaultExecutor) (response *htt
 	log += "\n"
 	log += "body:" + body
 	log += "\n"
-	resp, err := hc.Post(def.APIURL, "text/xml", strings.NewReader(body)) // TODO: HTTP METHOD
-	return resp, log, err
+	logs.Prefix("go-opensdk.wechat").Debug("request params:", log, params.ToURLParams(false))
+	req, err = http.NewRequest("POST", def.APIURL, strings.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "text/xml")
+	return req, nil
 }
