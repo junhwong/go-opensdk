@@ -26,11 +26,12 @@ type ClientBase struct {
 }
 
 func (c *ClientBase) HttpClient(twowayAuthentication bool) (*http.Client, error) {
-	// if c.GetHttpClient != nil {
-	// 	return c.GetHttpClient(twowayAuthentication)
-	// } else {
-	// 	return http.DefaultClient, nil // FIXME: 复用会出EOF BUG
-	// }
+	if c.GetHttpClient != nil {
+		return c.GetHttpClient(twowayAuthentication)
+	} else {
+		return http.DefaultClient, nil
+	}
+	// FIXME: 复用会出EOF BUG
 	var err error
 	if c.hc == nil {
 		if c.GetHttpClient != nil {
@@ -45,6 +46,7 @@ func (c *ClientBase) HttpClient(twowayAuthentication bool) (*http.Client, error)
 				transport := &http.Transport{
 					TLSClientConfig:    x.TLSClientConfig.Clone(),
 					DisableCompression: true,
+					DisableKeepAlives:  true,
 				}
 				return &http.Client{Transport: transport}, nil
 			}
