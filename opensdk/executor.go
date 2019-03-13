@@ -6,13 +6,18 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
+
+	log "github.com/junhwong/go-logs"
 )
 
 var (
 	ErrNotExecuteYet = errors.New("not execute yet.")
 )
+
+type HttpClient interface {
+	Do(request *http.Request, tlsTwowayAuthentication bool) (*http.Response, error)
+}
 
 // Executor 用于执行请求的相关上下文。
 // 每个 Executor 都可以被多次执行(注意：接口业务是否允许)。
@@ -21,7 +26,7 @@ type Executor interface {
 	// verifySign 表示是否需要同步验证签名，默认 `false` 不验证。
 	Execute(verifySign ...bool) Results
 	SetNotifyURL(url string, filedName ...string) Executor //设置支付宝服务器主动通知商户服务器里指定的页面http/https路径。
-	UseTLS(b bool) Executor                                // 是否需要双向认证
+	UseTwowayAuthentication(b bool) Executor               // 是否需要双向认证
 	UseXML(b bool) Executor                                //是否使用xml作为接口数据交换格式
 	ResultValidator(f func(Params) (ok bool, code string, msg string, subcode string, submsg string)) Executor
 	Set(filed string, value interface{}) Executor
@@ -30,7 +35,7 @@ type Executor interface {
 type DefaultExecutor struct {
 	Params
 	Client           Client
-	Request          func(*DefaultExecutor) (response *http.Response, requestLog string, err error)
+	BuildRequest     func(*DefaultExecutor) (req *http.Request, err error)
 	successValidator func(Params) (ok bool, code string, msg string, subcode string, submsg string)
 	Decoder          func(data []byte, dataFormat string, out *Params) (err error)
 	TLS              bool
@@ -44,7 +49,7 @@ func (e *DefaultExecutor) ResultValidator(f func(Params) (ok bool, code string, 
 	e.successValidator = f
 	return e
 }
-func (e *DefaultExecutor) UseTLS(b bool) Executor {
+func (e *DefaultExecutor) UseTwowayAuthentication(b bool) Executor {
 	e.TLS = b
 	return e
 }
@@ -67,40 +72,58 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 	if r.Err != nil {
 		return
 	}
-	var requestLog string
 	defer func() {
 		if x := recover(); x != nil {
 			if err, ok := x.(error); ok {
 				r.Err = err
+				log.Print(err)
 			} else {
-				log.Println(x)
+				log.Print(x)
 			}
 		}
-		// 日志
-		log.Println(requestLog)
 	}()
 
 	// TODO: 计时
-
-	response, requestLog, err := e.Request(e)
+	hc, err := e.Client.HttpClient(e.TLS)
 	if err != nil {
-		panic(err)
-	}
-	r.Data, r.Err = ioutil.ReadAll(response.Body)
-	if response.Body != nil {
-		response.Body.Close()
+		e.Err = err
+		return
 	}
 
-	if r.Err == io.EOF {
-		e.Err = nil
+	request, err := e.BuildRequest(e)
+	if err != nil {
+		e.Err = err
+		return
+	}
+	// 不使用这个会产生 EOF 错误 !! see: https://stackoverflow.com/questions/17714494/golang-http-request-results-in-eof-errors-when-making-multiple-requests-successi/23963271#23963271
+	request.Close = true
+
+	response, err := hc.Do(request)
+	if response != nil && response.Body != nil {
+		defer response.Body.Close()
+	}
+	if err != nil {
+		log.Printf("执行请求错误：%+v", err)
+		e.Err = err
+		return
+	}
+
+	r.Data, r.Err = ioutil.ReadAll(response.Body)
+	if r.Err != nil {
+		log.Print(r.Err)
+		return
 	}
 
 	if e.Decoder == nil {
 		e.Decoder = DefaultDecoder
 	}
-	err = e.Decoder(r.Data, e.DataFormat, &r.Params)
-	if err != nil {
-		panic(err)
+	r.Err = e.Decoder(r.Data, e.DataFormat, &r.Params)
+	if r.Err != nil {
+		if r.Err == io.EOF {
+			e.Err = nil
+		} else {
+			return
+		}
 	}
 	if len(verifySign) > 0 && verifySign[0] {
 		// TODO: 验证签名

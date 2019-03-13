@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/junhwong/go-logs"
 	"github.com/junhwong/go-opensdk/opensdk"
 	"github.com/junhwong/go-utils/crypto"
 )
@@ -23,16 +24,22 @@ import (
 // }
 
 type Client struct {
-	AppID      string
-	PrivateKey *rsa.PrivateKey
-	PublicKey  *rsa.PublicKey
-	Gateway    string
+	opensdk.ClientBase
+	AppID          string
+	PrivateKey     *rsa.PrivateKey
+	PublicKey      *rsa.PublicKey
+	Gateway        string
+	httpClientFunc func(useTLS bool) (*http.Client, error)
 }
 
+func (c *Client) SetHttpClientFunc(fn func(twowayAuthentication bool) (*http.Client, error)) {
+	c.httpClientFunc = fn
+}
 func NewClient(gateway, appID, privateKeyPath, alipayPublicKeyPath string) *Client {
 	c := &Client{
-		AppID:   appID,
-		Gateway: gateway,
+		ClientBase: opensdk.ClientBase{},
+		AppID:      appID,
+		Gateway:    gateway,
 	}
 
 	privateKey, err := ioutil.ReadFile(privateKeyPath)
@@ -60,7 +67,7 @@ func NewClient(gateway, appID, privateKeyPath, alipayPublicKeyPath string) *Clie
 
 // 填充通用参数
 func (c *Client) fillParams(method string, params opensdk.Params) {
-	params["sdk"] = "go-opensdk-0.0.1.DEV" // TODO: 版本号
+	params["sdk"] = "go-opensdk" // TODO: 版本号
 	params["method"] = method
 	params["app_id"] = c.AppID
 	params["format"] = "json"
@@ -80,7 +87,7 @@ func (c *Client) Build(methodOrURL string, params opensdk.Params) opensdk.Execut
 		APIURL:     c.Gateway,
 		HTTPMethod: "POST",
 	}
-	e.Request = c.doRequest
+	e.BuildRequest = c.doRequest
 	return e.ResultValidator(func(p opensdk.Params) (ok bool, code string, msg string, subcode string, submsg string) {
 		code = p.Get("code").String()
 		msg = p.Get("msg").String()
@@ -104,7 +111,7 @@ func (c *Client) buildWithBizContent(method string, biz opensdk.Params) opensdk.
 		APIURL:     c.Gateway,
 		HTTPMethod: "POST",
 	}
-	e.Request = c.doRequest
+	e.BuildRequest = c.doRequest
 	return e.ResultValidator(func(p opensdk.Params) (ok bool, code string, msg string, subcode string, submsg string) {
 		code = p.Get("code").String()
 		msg = p.Get("msg").String()
@@ -128,19 +135,19 @@ func (c *Client) VerifySign(params, signType string) (bool, error) {
 	return false, nil
 }
 
-func (c *Client) doRequest(def *opensdk.DefaultExecutor) (response *http.Response, requestLog string, err error) {
+func (c *Client) doRequest(def *opensdk.DefaultExecutor) (response *http.Request, err error) {
+	log := ""
 	signType := def.Get("sign_type").String()
 	params := def.Params.Sort()
-	log := "sign params:" + params.ToURLParams()
+	log = "sign params:" + params.ToURLParams()
 	sign, err := c.Sign(params.ToURLParams(), signType)
 	if err != nil {
-		return nil, log, err
+		return nil, err
 	}
 	params.Append("sign", sign)
 	body := params.ToURLParams(true)
 	log += "\nbody:" + body
-	// fmt.Println(params.ToURLParams(false))
-	// fmt.Println(body)
+	logs.Prefix("go-opensdk.alipay").Debug("request params:", log, params.ToURLParams(false))
 	def.Decoder = func(data []byte, dataFormat string, out *opensdk.Params) (err error) {
 		dataStr, signStr := extract(data) // 分离结果和签名
 		(*out)["sign"] = signStr
@@ -150,9 +157,12 @@ func (c *Client) doRequest(def *opensdk.DefaultExecutor) (response *http.Respons
 		if err != nil {
 			return err
 		}
-
 		return opensdk.DefaultDecoder(newData, dataFormat, out)
 	}
-	resp, err := http.Post(def.APIURL, "application/x-www-form-urlencoded", strings.NewReader(body)) // TODO: HTTP METHOD
-	return resp, log, err
+	req, err := http.NewRequest("POST", def.APIURL, strings.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	return req, nil
 }
