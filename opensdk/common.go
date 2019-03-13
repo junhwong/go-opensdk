@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"io"
+	"net/http"
 	"net/url"
 	"sort"
 	"strings"
@@ -15,6 +16,43 @@ import (
 type Client interface {
 	Sign(params, signType string) (string, error)
 	VerifySign(params, signType string) (bool, error)
+	// ff
+	HttpClient(twowayAuthentication bool) (*http.Client, error)
+}
+
+type ClientBase struct {
+	GetHttpClient func(twowayAuthentication bool) (*http.Client, error)
+	hc            *http.Client
+}
+
+func (c *ClientBase) HttpClient(twowayAuthentication bool) (*http.Client, error) {
+	if c.GetHttpClient != nil {
+		return c.GetHttpClient(twowayAuthentication)
+	} else {
+		return http.DefaultClient, nil
+	}
+	// FIXME: 复用会出EOF BUG
+	var err error
+	if c.hc == nil {
+		if c.GetHttpClient != nil {
+			c.hc, err = c.GetHttpClient(twowayAuthentication)
+		} else {
+			return &http.Client{}, nil
+		}
+	} else {
+		if c.hc.Transport != nil {
+			ts := c.hc.Transport
+			if x, ok := ts.(*http.Transport); ok {
+				transport := &http.Transport{
+					TLSClientConfig:    x.TLSClientConfig.Clone(),
+					DisableCompression: true,
+					DisableKeepAlives:  true,
+				}
+				return &http.Client{Transport: transport}, nil
+			}
+		}
+	}
+	return c.hc, err
 }
 
 type Params map[string]interface{}

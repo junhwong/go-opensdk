@@ -60,7 +60,7 @@ func (c *WechatPayClient) Refund(transactionID, outTradeNo, outRefundNo string, 
 		"refund_fee":      refundFee,     // 退款总金额
 		"refund_fee_type": "CNY",         // 货币类型
 		"refund_desc":     refundDesc,    // 退款原因
-	}).UseXML(true).UseTLS(true)
+	}).UseXML(true).UseTwowayAuthentication(true)
 }
 
 // RefundQuery 查询退款。接口文档：https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_5
@@ -104,7 +104,7 @@ func (c *WechatPayClient) MMPayTransfer(partnerTradeNo, openID, reUserName, desc
 		"amount":           amount,
 		"desc":             desc,
 		"spbill_create_ip": spbillIP,
-	}).UseXML(true).UseTLS(true)
+	}).UseXML(true).UseTwowayAuthentication(true)
 }
 
 // MMPayQuery 查询企业付款。接口文档：https://pay.weixin.qq.com/wiki/doc/api/tools/mch_pay.php?chapter=14_3
@@ -114,5 +114,5 @@ func (c *WechatPayClient) MMPayQuery(partnerTradeNo string) opensdk.Executor {
 		"mch_id":           c.MchID,
 		"appid":            c.AppID,
 		"partner_trade_no": partnerTradeNo,
-	}).UseXML(true).UseTLS(true)
+	}).UseXML(true).UseTwowayAuthentication(true)
 }
