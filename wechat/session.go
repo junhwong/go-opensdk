@@ -7,8 +7,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/junhwong/go-opensdk/opensdk"
-
+	"github.com/junhwong/go-opensdk/core"
 	"github.com/junhwong/go-utils/crypto"
 )
 
@@ -171,8 +170,8 @@ func (c *WechatClient) GetTicket(token string) (*AccessTokenResponse, error) {
 }
 
 // SendTemplateMessage 文档 https://developers.weixin.qq.com/miniprogram/dev/api/sendTemplateMessage.html
-func (c *WechatClient) SendTemplateMessage(token, openID, templateID, formID, page, emphasisKeyword string, data opensdk.Params) ([]byte, error) {
-	params := opensdk.Params{
+func (c *WechatClient) SendTemplateMessage(token, openID, templateID, formID, page, emphasisKeyword string, data core.Params) ([]byte, error) {
+	params := core.Params{
 		"access_token":     token,
 		"touser":           openID,
 		"template_id":      templateID,

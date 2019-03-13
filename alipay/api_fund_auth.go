@@ -3,7 +3,7 @@ package alipay
 import (
 	"strings"
 
-	"github.com/junhwong/go-opensdk/opensdk"
+	"github.com/junhwong/go-opensdk/core"
 )
 
 // FundAuthOrderAppFreezeRequest 构建app端发起资金预授权支付的参数。接口文档： https://docs.open.alipay.com/api_28/alipay.fund.auth.order.app.freeze
@@ -11,9 +11,9 @@ import (
 // 小程序端发起文档：https://docs.alipay.com/mini/introduce/pre-authorization
 //
 // 预授权类目：https://docs.open.alipay.com/10719
-func (c *Client) FundAuthOrderAppFreezeRequest(outOrderNo, outRequestNo, orderTitle string, amount string, payeeUserID string, extraParam opensdk.Params, notifyURL string) (params opensdk.Params, err error) {
+func (c *Client) FundAuthOrderAppFreezeRequest(outOrderNo, outRequestNo, orderTitle string, amount string, payeeUserID string, extraParam core.Params, notifyURL string) (params core.Params, err error) {
 
-	params = opensdk.Params{
+	params = core.Params{
 
 		"out_order_no":        outOrderNo,
 		"out_request_no":      outRequestNo,
@@ -25,7 +25,7 @@ func (c *Client) FundAuthOrderAppFreezeRequest(outOrderNo, outRequestNo, orderTi
 		"extra_param":         strings.Replace(extraParam.Sort().ToJSON(), `"`, `\"`, -1), // TODO: 内嵌JSON字符串处理
 		"enable_pay_channels": `[{\"payChannelType\":\"CREDITZHIMA\"},{\"payChannelType\":\"PCREDIT_PAY\"},{\"payChannelType\":\"MONEY_FUND\"},]`,
 	}
-	header := opensdk.Params{"notify_url": notifyURL}
+	header := core.Params{"notify_url": notifyURL}
 	c.fillParams("alipay.fund.auth.order.app.freeze", header)
 	header["biz_content"] = params.Sort().ToJSON()
 	header["sign"], err = c.Sign(header.Sort().ToURLParams(), header.Get("sign_type").String())
@@ -33,9 +33,9 @@ func (c *Client) FundAuthOrderAppFreezeRequest(outOrderNo, outRequestNo, orderTi
 }
 
 // FundAuthOrderUnfreeze 资金授权解冻接口。接口文档： https://docs.open.alipay.com/api_28/alipay.fund.auth.order.unfreeze
-func (c *Client) FundAuthOrderUnfreeze(outRequestNo, authNo, remark string, amount string) opensdk.Executor {
-	remark = string(opensdk.ToGBKData([]byte(remark))) // 支付宝内部使用 GBK编码
-	return c.buildWithBizContent("alipay.fund.auth.order.unfreeze", opensdk.Params{
+func (c *Client) FundAuthOrderUnfreeze(outRequestNo, authNo, remark string, amount string) core.Executor {
+	remark = string(core.ToGBKData([]byte(remark))) // 支付宝内部使用 GBK编码
+	return c.buildWithBizContent("alipay.fund.auth.order.unfreeze", core.Params{
 		"out_request_no": outRequestNo,
 		"auth_no":        authNo,
 		"remark":         remark,
@@ -45,9 +45,9 @@ func (c *Client) FundAuthOrderUnfreeze(outRequestNo, authNo, remark string, amou
 }
 
 // FundAuthOperationCancel 资金授权撤销接口。接口文档： https://docs.open.alipay.com/api_28/alipay.fund.auth.operation.cancel
-func (c *Client) FundAuthOperationCancel(outOrderNo, outRequestNo string, remark string) opensdk.Executor {
-	remark = string(opensdk.ToGBKData([]byte(remark))) // 支付宝内部使用 GBK编码
-	return c.buildWithBizContent("alipay.fund.auth.operation.cancel", opensdk.Params{
+func (c *Client) FundAuthOperationCancel(outOrderNo, outRequestNo string, remark string) core.Executor {
+	remark = string(core.ToGBKData([]byte(remark))) // 支付宝内部使用 GBK编码
+	return c.buildWithBizContent("alipay.fund.auth.operation.cancel", core.Params{
 		"out_order_no":   outOrderNo,
 		"out_request_no": outRequestNo,
 		"remark":         remark,
@@ -55,8 +55,8 @@ func (c *Client) FundAuthOperationCancel(outOrderNo, outRequestNo string, remark
 }
 
 // FundAuthOperationDetailQuery 资金授权操作查询接口。接口文档：https://docs.open.alipay.com/api_28/alipay.fund.auth.operation.detail.query
-func (c *Client) FundAuthOperationDetailQuery(outOrderNo, outRequestNo string, authNo, operationID string) opensdk.Executor {
-	return c.buildWithBizContent("alipay.fund.auth.operation.detail.query", opensdk.Params{
+func (c *Client) FundAuthOperationDetailQuery(outOrderNo, outRequestNo string, authNo, operationID string) core.Executor {
+	return c.buildWithBizContent("alipay.fund.auth.operation.detail.query", core.Params{
 		"out_order_no":   outOrderNo,
 		"out_request_no": outRequestNo,
 		"auth_no":        authNo,

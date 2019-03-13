@@ -1,6 +1,6 @@
 package alipay
 
-import "github.com/junhwong/go-opensdk/opensdk"
+import "github.com/junhwong/go-opensdk/core"
 
 type UserInfo struct {
 	OpenID             string `json:"user_id"`
@@ -16,8 +16,8 @@ type UserInfo struct {
 }
 
 //SystemOauthToken 换取授权访问令牌。接口文档：https://docs.open.alipay.com/api_2/alipay.user.info.share
-func (c *Client) UserInfoShare(authToken string) opensdk.Executor {
-	return c.Build("alipay.user.info.share", opensdk.Params{
+func (c *Client) UserInfoShare(authToken string) core.Executor {
+	return c.Build("alipay.user.info.share", core.Params{
 		"auth_token": authToken,
 	})
 }

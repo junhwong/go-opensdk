@@ -1,4 +1,4 @@
-package opensdk
+package core
 
 import (
 	"bytes"

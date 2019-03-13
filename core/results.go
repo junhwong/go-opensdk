@@ -1,4 +1,4 @@
-package opensdk
+package core
 
 import (
 	utils "github.com/junhwong/go-utils"
