@@ -1,7 +1,7 @@
 github.com/junhwong/go-logs v0.1.0 h1:qa40/cTPTPrbjYPcKRK//+B/Wy9N003aJAoLYKoBiMU=
 github.com/junhwong/go-logs v0.1.0/go.mod h1:yhdsHwxOF7/+nEAs4eSTGhvbem5AggmXfn6OFpL3wJI=
-github.com/junhwong/go-utils v0.0.0 h1:SFOp/E0HgNqXTPOcwzAbGG8JMIVNWA9tZhrUdecqX+0=
-github.com/junhwong/go-utils v0.0.0/go.mod h1:TiPEtuZshyC6lPQTeiVg5uiEvU9fbVfjhXAxObrUYMg=
+github.com/junhwong/go-utils v0.1.1 h1:b2IV/aKO9EOAncAkivwhE9PpJcxrgZNXq7me3E+A72g=
+github.com/junhwong/go-utils v0.1.1/go.mod h1:TiPEtuZshyC6lPQTeiVg5uiEvU9fbVfjhXAxObrUYMg=
 golang.org/x/crypto v0.0.0-20190320223903-b7391e95e576 h1:aUX/1G2gFSs4AsJJg2cL3HuoRhCSCz733FE5GUSuaT4=
 golang.org/x/crypto v0.0.0-20190320223903-b7391e95e576/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
