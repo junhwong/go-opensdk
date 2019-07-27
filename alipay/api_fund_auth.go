@@ -23,7 +23,7 @@ func (c *Client) FundAuthOrderAppFreezeRequest(outOrderNo, outRequestNo, orderTi
 		"payee_user_id":       payeeUserID,
 		"pay_timeout":         "15d",                                                      // 超时 取值范围：1m～15d。m-分钟，h-小时，d-天。 该参数数值不接受小数点， 如 1.5h，可转换为90m ，如果为空，默认15m
 		"extra_param":         strings.Replace(extraParam.Sort().ToJSON(), `"`, `\"`, -1), // TODO: 内嵌JSON字符串处理
-		"enable_pay_channels": `[{\"payChannelType\":\"CREDITZHIMA\"},{\"payChannelType\":\"PCREDIT_PAY\"},{\"payChannelType\":\"MONEY_FUND\"},]`,
+		"enable_pay_channels": `[{\"payChannelType\":\"CREDITZHIMA\"},{\"payChannelType\":\"PCREDIT_PAY\"},{\"payChannelType\":\"MONEY_FUND\"}]`,
 	}
 	header := opensdk.Params{"notify_url": notifyURL}
 	c.fillParams("alipay.fund.auth.order.app.freeze", header)
