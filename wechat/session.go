@@ -68,7 +68,10 @@ func (c *WechatClient) JSCode2Session(code string) (*MiniProgramLoginSession, er
 	}
 	var sess MiniProgramLoginSession
 	err = json.Unmarshal(body, &sess)
-
+	if err != nil {
+		err = fmt.Errorf("解析返回内容错误：%v", err)
+		logs.Print(string(body))
+	}
 	return &sess, err
 }
 
@@ -85,13 +88,16 @@ func (c *WechatClient) MiniProgramLogin(params *MiniProgramLoginParams) (u *User
 	}
 	s, err := decryptData(sess.SessionKey, params.Iv, params.EncryptedData)
 	if err != nil {
-		//panic(err)
+		err = fmt.Errorf("解码加密数据错误：%v", err)
 		return
 	}
 	u = new(UserInfo)
 	if err = json.Unmarshal(s, &u); err != nil || u.OpenID != sess.OpenID {
 		if err == nil {
 			err = fmt.Errorf("OpenID mismatched：%s,%s", u.OpenID, sess.OpenID)
+		} else {
+			err = fmt.Errorf("解码用户结构数据错误：%v", err)
+			logs.Print(string(s))
 		}
 	}
 	return
