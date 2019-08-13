@@ -26,6 +26,7 @@ import (
 type Client struct {
 	opensdk.ClientBase
 	AppID          string
+	PayeeID        string
 	PrivateKey     *rsa.PrivateKey
 	PublicKey      *rsa.PublicKey
 	Gateway        string
@@ -35,10 +36,11 @@ type Client struct {
 func (c *Client) SetHttpClientFunc(fn func(twowayAuthentication bool) (*http.Client, error)) {
 	c.httpClientFunc = fn
 }
-func NewClient(gateway, appID, privateKeyPath, alipayPublicKeyPath string) *Client {
+func NewClient(gateway, appID, payeeID, privateKeyPath, alipayPublicKeyPath string) *Client {
 	c := &Client{
 		ClientBase: opensdk.ClientBase{},
 		AppID:      appID,
+		PayeeID:    payeeID,
 		Gateway:    gateway,
 	}
 

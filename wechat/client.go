@@ -25,13 +25,15 @@ func NewClient(appid, secret string) *WechatClient {
 type WechatPayClient struct {
 	WechatClient
 	APICertFile string // 过时
+	ServiceID   string
 	MchID       string // 微信支付分配的商户号
 	MchKey      string
 }
 
-func NewPayClient(appid, secret, mchID, mchKey string) *WechatPayClient {
+func NewPayClient(appid, secret, mchID, mchKey, serviceID string) *WechatPayClient {
 	return &WechatPayClient{
 		WechatClient: *NewClient(appid, secret),
+		ServiceID:    serviceID,
 		MchID:        mchID,
 		MchKey:       mchKey,
 	}
