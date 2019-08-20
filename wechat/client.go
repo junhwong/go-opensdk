@@ -72,7 +72,7 @@ func (c *WechatPayClient) BuildExecutor(url string, params opensdk.Params) opens
 func (c *WechatPayClient) Sign(params, signType string) (string, error) {
 	switch signType {
 	case "HMAC-SHA256":
-		return opensdk.Sha256Hmac(params, nil) // TODO: key
+		return opensdk.Sha256Hmac(params+"&key="+c.MchKey, []byte(c.MchKey)) // TODO: key
 	case "SHA1":
 		return opensdk.Sha1(params)
 	default:
@@ -98,6 +98,7 @@ func (c *WechatPayClient) doRequest(def *opensdk.DefaultExecutor) (req *http.Req
 	}
 	// delete(def.Params, "sign_type")
 	// params = def.Params.Sort()
+	// params.Append("sign_type", signType)
 	params.Append("sign", sign)
 	body := params.ToXML()
 	log += "\n"
