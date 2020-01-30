@@ -20,7 +20,7 @@ type Results interface {
 type DefaultResults struct {
 	Params
 	Err           error
-	Data          []byte
+	Data          []byte `json:"-"`
 	ResultCode    string
 	ResultMsg     string
 	ResultSubCode string

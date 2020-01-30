@@ -106,7 +106,7 @@ func (c *Client) MerchantOrderRentCancel(outOrderNo string) opensdk.Executor {
 // 额外两个可选字段：restore_shop_name，extend_info 可稍后根据需要设置。
 //
 // pay_amount_type: 默认为 RENT 租金, 根据需要可以改变为 DAMAGE。
-func (c *Client) MerchantOrderRentComplete(orderNo string, restoreTime time.Time, payAmount string) opensdk.Executor {
+func (c *Client) MerchantOrderRentComplete(orderNo string, restoreTime time.Time, payAmount string, payAmountType ...string) opensdk.Executor {
 	// biz_content := opensdk.Params{
 	// 	"order_no":        orderNo,
 	// 	"restore_time":    opensdk.JsonTime(restoreTime),
@@ -114,11 +114,15 @@ func (c *Client) MerchantOrderRentComplete(orderNo string, restoreTime time.Time
 	// 	"pay_amount":      payAmount,
 	// 	"product_code":    "w1010100000000002858",
 	// }
+	typ := "RENT"
+	if len(payAmountType) > 0 {
+		typ = payAmountType[0]
+	}
 
 	return c.Build("zhima.merchant.order.rent.complete", opensdk.Params{
 		"order_no":        orderNo,
 		"restore_time":    opensdk.JsonTime(restoreTime),
-		"pay_amount_type": "RENT",
+		"pay_amount_type": typ,
 		"pay_amount":      payAmount,
 		"product_code":    "w1010100000000002858",
 		// "biz_content": biz_content,

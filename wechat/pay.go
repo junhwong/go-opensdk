@@ -1,9 +1,14 @@
 package wechat
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/junhwong/go-opensdk/opensdk"
@@ -115,4 +120,76 @@ func (c *WechatPayClient) MMPayQuery(partnerTradeNo string) opensdk.Executor {
 		"appid":            c.AppID,
 		"partner_trade_no": partnerTradeNo,
 	}).UseXML(true).UseTwowayAuthentication(true)
+}
+
+// PayDownloadBill 下载对账单。接口文档：https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_6
+func (c *WechatPayClient) PayDownloadBill(billDate, billType string, handle func(b []byte)) error {
+	hc, err := c.HttpClient(false)
+	if err != nil {
+		return err
+	}
+	params := opensdk.Params{
+		"appid": c.AppID,
+		// "timeStamp": fmt.Sprintf("%d", time.Now().Unix()),
+		"nonce_str": opensdk.RandomString(10),
+		"mch_id":    c.MchID,
+		"bill_date": billDate,
+		"bill_type": billType,
+	}
+	params["sign"], err = c.Sign(params.Sort().ToURLParams(), "MD5")
+	if err != nil {
+		return err
+	}
+	body := params.Sort().ToXML()
+	// fmt.Println(body)
+	res, err := hc.Post("https://api.mch.weixin.qq.com/pay/downloadbill", "text/xml", strings.NewReader(body))
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	content, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	if len(content) > 3 && content[0] == 0xEF && content[1] == 0xBB && content[2] == 0xBF {
+		content = content[3:]
+	}
+	handle(content)
+	return nil
+}
+
+func ParseToSlince(b []byte) [][]string {
+	return reader(b)
+}
+
+func reader(b []byte) [][]string {
+	rd := bytes.NewReader(b)
+	r := bufio.NewReader(rd)
+	var ln int
+	lines := [][]string{}
+	for {
+		lb, _, err := r.ReadLine()
+		if err != nil {
+			if err != io.EOF {
+				fmt.Println(err)
+			}
+			break
+		}
+		lr := bufio.NewReader(bytes.NewReader(lb))
+		line := []string{}
+		for {
+			cell, err := lr.ReadSlice(',')
+			if err != nil {
+				if err != io.EOF {
+					fmt.Println(err)
+				}
+				break
+			}
+			line = append(line, strings.TrimLeft(string(cell[:len(cell)-1]), "`"))
+		}
+		ln++
+		// fmt.Println(ln, ":", line)
+		lines = append(lines, line)
+	}
+	return lines
 }

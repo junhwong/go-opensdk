@@ -30,6 +30,7 @@ type Executor interface {
 	UseXML(b bool) Executor                                //是否使用xml作为接口数据交换格式
 	ResultValidator(f func(Params) (ok bool, code string, msg string, subcode string, submsg string)) Executor
 	Set(filed string, value interface{}) Executor
+	//WithDecoder(decoder func(data []byte, dataFormat string, out *Params) (err error))
 }
 
 type DefaultExecutor struct {

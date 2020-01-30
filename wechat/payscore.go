@@ -97,9 +97,9 @@ func (r *PayScoreRentCreateResults) BuildMiniaEnableParams(c *WechatPayClient, e
 	}
 	temp := data.Sort().ToURLParams() + "&key=" + c.MchKey
 	data["sign"], err = opensdk.Sha256Hmac(temp, []byte(c.MchKey))
-	fmt.Println(temp)
-	fmt.Println(c.MchKey)
-	fmt.Println(data["sign"])
+	// fmt.Println(temp)
+	// fmt.Println(c.MchKey)
+	// fmt.Println(data["sign"])
 	p["extraData"] = data
 
 	return
@@ -193,7 +193,7 @@ func (b *Backoff) Wait() bool {
 	if b.Max <= crt {
 		return false
 	}
-	fmt.Println(crt)
+	//fmt.Println(crt)
 	time.Sleep(crt)
 	b.crt <<= 1
 	return true
@@ -231,12 +231,14 @@ func (c *WechatPayClient) PayScoreRentQuery(ctx context.Context, outOrderNo stri
 	backoff := &Backoff{Max: time.Second * 5}
 	for err == nil && results.SubCode() == "SYSTEMERROR" && backoff.Wait() {
 		results.Results = executor.Execute(false)
+		// fmt.Println("====ssssssss==", results.Results)
+		// fmt.Println("====ssssssss==", string(results.Results.Body()))
 		err = results.Error()
 	}
 	if err != nil {
 		return
 	}
-	GetLoggerFromContext(ctx).Info(results.Results)
+	GetLoggerFromContext(ctx).Info(results.Results, string(results.Results.Body()))
 	if !results.Success() {
 		code := results.SubCode()
 		if code == "" {
@@ -342,6 +344,7 @@ func (c *WechatPayClient) PayScoreRentFinish(ctx context.Context, params PayScor
 		p["returned"] = "FALSE"
 		p["compensation_fee"] = params.TotalAmount
 		p["compensation_fee_desc"] = params.CompensationFeeDesc
+		p["rent_fee"] = 0
 	}
 	// if params.CompensationFee > 0 {
 	// 	p["compensation_fee"] = params.CompensationFee
@@ -375,7 +378,7 @@ func (c *WechatPayClient) PayScoreRentFinish(ctx context.Context, params PayScor
 	if err != nil {
 		return
 	}
-	GetLoggerFromContext(ctx).Info(results.Results)
+	GetLoggerFromContext(ctx).Info(results.Results, string(results.Results.Body()))
 
 	if !results.Success() {
 		code := results.SubCode()
@@ -407,6 +410,11 @@ type dropLogger struct {
 }
 
 func (*dropLogger) Info(a ...interface{}) {
+	// b, err := json.Marshal(a)
+	// if err == nil {
+	// 	fmt.Println(string(b))
+	// 	return
+	// }
 	fmt.Println(a...)
 }
 func (*dropLogger) Error(a ...interface{}) {
