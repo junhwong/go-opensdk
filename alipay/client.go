@@ -27,6 +27,7 @@ type Client struct {
 	opensdk.ClientBase
 	AppID          string
 	PayeeID        string
+	ServiceID      string
 	PrivateKey     *rsa.PrivateKey
 	PublicKey      *rsa.PublicKey
 	Gateway        string

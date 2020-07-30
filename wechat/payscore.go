@@ -6,6 +6,7 @@ import (
 
 	"time"
 
+	"github.com/junhwong/go-logs"
 	"github.com/junhwong/go-opensdk/opensdk"
 	"github.com/junhwong/go-utils"
 )
@@ -410,13 +411,8 @@ type dropLogger struct {
 }
 
 func (*dropLogger) Info(a ...interface{}) {
-	// b, err := json.Marshal(a)
-	// if err == nil {
-	// 	fmt.Println(string(b))
-	// 	return
-	// }
-	fmt.Println(a...)
+	logs.Debug(a...)
 }
 func (*dropLogger) Error(a ...interface{}) {
-	fmt.Println(a...)
+	logs.Error(a...)
 }
