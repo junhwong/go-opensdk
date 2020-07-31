@@ -28,6 +28,7 @@ type Client struct {
 	AppID          string
 	PayeeID        string
 	ServiceID      string
+	SellerID       string
 	PrivateKey     *rsa.PrivateKey
 	PublicKey      *rsa.PublicKey
 	Gateway        string
