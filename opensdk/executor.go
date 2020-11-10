@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -76,21 +77,23 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 	defer func() {
 		if x := recover(); x != nil {
 			if err, ok := x.(error); ok {
-				r.Err = err
+				e.Err = err
 				log.Print(err)
 			} else {
 				log.Print(x)
 			}
 		}
+		r.Err = e.Err
 	}()
-
+	// println("here10")
 	// TODO: 计时
 	hc, err := e.Client.HttpClient(e.TLS)
 	if err != nil {
+		// println("here12", err.Error(), hc)
 		e.Err = err
 		return
 	}
-
+	// println("here11")
 	request, err := e.BuildRequest(e)
 	if err != nil {
 		e.Err = err
@@ -98,11 +101,12 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 	}
 	// 不使用这个会产生 EOF 错误 !! see: https://stackoverflow.com/questions/17714494/golang-http-request-results-in-eof-errors-when-making-multiple-requests-successi/23963271#23963271
 	request.Close = true
-
+	// println("here1")
 	response, err := hc.Do(request)
 	if response != nil && response.Body != nil {
 		defer response.Body.Close()
 	}
+	// println("here")
 	if err != nil {
 		log.Printf("执行请求错误：%+v", err)
 		e.Err = err
@@ -114,6 +118,8 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 		log.Print(r.Err)
 		return
 	}
+	fmt.Println(string(r.Data))
+	fmt.Println(r)
 
 	if e.Decoder == nil {
 		e.Decoder = DefaultDecoder

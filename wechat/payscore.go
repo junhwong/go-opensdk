@@ -228,10 +228,14 @@ func (c *WechatPayClient) PayScoreRentQuery(ctx context.Context, outOrderNo stri
 		ServiceID:  c.ServiceID,
 		MchID:      c.MchID,
 	}
+
 	err = results.Error()
+	// fmt.Println("====ssssssss2==", err)
+	// fmt.Println("====ssssssss3==", results.Error())
 	backoff := &Backoff{Max: time.Second * 5}
 	for err == nil && results.SubCode() == "SYSTEMERROR" && backoff.Wait() {
 		results.Results = executor.Execute(false)
+		// GetLoggerFromContext(ctx).Error(results.Results, string(results.Results.Body()))
 		// fmt.Println("====ssssssss==", results.Results)
 		// fmt.Println("====ssssssss==", string(results.Results.Body()))
 		err = results.Error()
@@ -245,6 +249,7 @@ func (c *WechatPayClient) PayScoreRentQuery(ctx context.Context, outOrderNo stri
 		if code == "" {
 			code = "gateway_error"
 		}
+
 		err = utils.Err(code, results.SubMessage())
 		return
 	}

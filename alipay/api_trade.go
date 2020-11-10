@@ -36,11 +36,18 @@ func (c *Client) TradeQuery(outTradeNo, tradeNo string) opensdk.Executor {
 // TradeOrderInfoSync 支付宝订单信息同步接口。接口文档：https://docs.open.alipay.com/api_1/alipay.trade.orderinfo.sync
 // 特定使用文档：https://docs.alipay.com/mini/introduce/pre-authorization
 // status: COMPLETE(用户已履约)、VIOLATED(用户已违约)；
-func (c *Client) TradeOrderInfoSync(outOrderNo, tradeNo string, status string) opensdk.Executor {
+func (c *Client) TradeOrderInfoSync(outRequestNo, tradeNo string, status string, orig ...string) opensdk.Executor {
+	og := outRequestNo
+	for _, it := range orig {
+		if it != "" {
+			og = it
+		}
+	}
 	return c.buildWithBizContent("alipay.trade.orderinfo.sync", opensdk.Params{
-		"trade_no":       tradeNo,
-		"out_request_no": outOrderNo,
-		"biz_type":       "CREDIT_AUTH",
+		"trade_no":        tradeNo,
+		"orig_request_no": og,
+		"out_request_no":  outRequestNo,
+		"biz_type":        "CREDIT_AUTH",
 		// "order_biz_info": `{"orderInfo":{\"status\":\"` + status + `\"}}`,
 		"order_biz_info": `{\"status\":\"` + status + `\"}`,
 	})
