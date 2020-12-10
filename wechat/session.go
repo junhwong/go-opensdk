@@ -69,7 +69,7 @@ func (c *WechatClient) JSCode2Session(code string) (*MiniProgramLoginSession, er
 	if err != nil {
 		return nil, err
 	}
-	var sess MiniProgramLoginSession
+	sess := MiniProgramLoginSession{}
 	err = json.Unmarshal(body, &sess)
 	if err != nil {
 		err = fmt.Errorf("解析返回内容错误：%v", err)
@@ -133,7 +133,7 @@ func (c *WechatClient) CodeToAccessToken(code string) (*AccessTokenResponse, err
 	if err != nil {
 		return nil, err
 	}
-	var sess AccessTokenResponse
+	sess := AccessTokenResponse{}
 	err = json.Unmarshal(body, &sess)
 	return &sess, err
 }
@@ -153,7 +153,7 @@ func (c *WechatClient) GetAccessToken() (*AccessTokenResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	var sess AccessTokenResponse
+	sess := AccessTokenResponse{}
 	err = json.Unmarshal(body, &sess)
 	return &sess, err
 }
@@ -173,7 +173,7 @@ func (c *WechatClient) GetTicket(token string) (*AccessTokenResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	var sess AccessTokenResponse
+	sess := AccessTokenResponse{}
 	err = json.Unmarshal(body, &sess)
 	return &sess, err
 }

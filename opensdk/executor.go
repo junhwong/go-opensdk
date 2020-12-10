@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 
+	"github.com/junhwong/go-logs"
 	log "github.com/junhwong/go-logs"
 )
 
@@ -118,8 +118,9 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 		log.Print(r.Err)
 		return
 	}
-	fmt.Println(string(r.Data))
-	fmt.Println(r)
+	// fmt.Println(string(r.Data))
+	logs.Prefix("go-opensdk.resp").Debug("request response:", string(r.Data))
+	// fmt.Println(r)
 
 	if e.Decoder == nil {
 		e.Decoder = DefaultDecoder

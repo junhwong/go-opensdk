@@ -1,3 +1,3 @@
 # go-opensdk
 
-git commit -a -S -m '修复 err 丢失的问题'
+git commit -a -S -m '优化日志和结构'
