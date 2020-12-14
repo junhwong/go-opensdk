@@ -79,3 +79,30 @@ func PKCS12ToPem(p12 []byte, password string) tls.Certificate {
 	}
 	return cert
 }
+
+// 将Pkcs12转成Pem
+func LoadPKCS12ToPem(p12 []byte, password string) (*tls.Certificate, error) {
+
+	blocks, err := pkcs12.ToPEM(p12, password)
+	if err != nil {
+		return nil, err
+	}
+
+	// 从恐慌恢复
+	defer func() {
+		if x := recover(); x != nil {
+			log.Print(x)
+		}
+	}()
+
+	var pemData []byte
+	for _, b := range blocks {
+		pemData = append(pemData, pem.EncodeToMemory(b)...)
+	}
+
+	cert, err := tls.X509KeyPair(pemData, pemData)
+	if err != nil {
+		return nil, err
+	}
+	return &cert, nil
+}

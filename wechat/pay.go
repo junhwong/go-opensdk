@@ -6,22 +6,20 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/junhwong/go-opensdk/opensdk"
 )
 
-func genString() string {
-	rand.Seed(time.Now().Unix())
-	rnd := strconv.FormatInt(rand.Int63(), 15)
-	if len(rnd) > 15 {
-		rnd = rnd[:15]
-	}
-	return fmt.Sprintf("%s", rnd)
-}
+// func genString() string {
+// 	rand.Seed(time.Now().Unix())
+// 	rnd := strconv.FormatInt(rand.Int63(), 15)
+// 	if len(rnd) > 15 {
+// 		rnd = rnd[:15]
+// 	}
+// 	return fmt.Sprintf("%s", rnd)
+// }
 
 // UnifiedOrder 在微信支付服务后台生成预支付交易单。接口文档：https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_1
 //

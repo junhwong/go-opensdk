@@ -21,6 +21,8 @@ type DefaultResults struct {
 	Params
 	Err           error
 	Data          []byte `json:"-"`
+	StatusCode    int
+	Header        interface{}
 	ResultCode    string
 	ResultMsg     string
 	ResultSubCode string

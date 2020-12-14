@@ -112,6 +112,8 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 		e.Err = err
 		return
 	}
+	r.Params["response.StatusCode"] = response.StatusCode
+	r.Params["response.Header"] = response.Header
 
 	r.Data, r.Err = ioutil.ReadAll(response.Body)
 	if r.Err != nil {

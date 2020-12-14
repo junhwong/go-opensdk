@@ -1,3 +1,3 @@
 # go-opensdk
 
-git commit -a -S -m '优化日志和结构'
+git commit -a -S -m '增加支付分 v3 支持'

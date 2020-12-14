@@ -1,6 +1,8 @@
 package wechat
 
 import (
+	"crypto/rsa"
+	"crypto/tls"
 	"net/http"
 	"strings"
 
@@ -24,10 +26,13 @@ func NewClient(appid, secret string) *WechatClient {
 
 type WechatPayClient struct {
 	WechatClient
-	APICertFile string // 过时
-	ServiceID   string
-	MchID       string // 微信支付分配的商户号
-	MchKey      string
+	APICert         *tls.Certificate // API证书文件
+	APICertSerialNo string           // API证书序列号
+	PrivateKey      *rsa.PrivateKey
+	PublicKey       *rsa.PublicKey
+	ServiceID       string
+	MchID           string // 微信支付分配的商户号
+	MchKey          string
 }
 
 func NewPayClient(appid, secret, mchID, mchKey, serviceID string) *WechatPayClient {

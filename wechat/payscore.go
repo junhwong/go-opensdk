@@ -21,6 +21,7 @@ type PayScoreRentParams struct {
 	DepositAmount   int64     `json:"deposit_amount" xml:"deposit_amount"`     // 押金总额
 	RentUnitFee     int64     `json:"rent_unit_fee" xml:"rent_unit_fee"`       // 租金规则 计费单价费用 分/小时
 	RentFeeDesc     string    `json:"rent_fee_desc" xml:"rent_fee_desc"`       // 租金规则 计费单价费用 分/小时
+	NotifyURL       string    `json:"-" xml:"-"`
 }
 
 // 请求参数，必填
@@ -58,7 +59,7 @@ func (r *PayScoreRentCreateResults) BuildMiniaConfirmParams(c *WechatPayClient, 
 		}
 	}
 	data := opensdk.Params{
-		"mch_id":    r.MchID,
+		"mch_id":    c.MchID,
 		"package":   r.Package,
 		"timestamp": fmt.Sprintf("%d", time.Now().Unix()),
 		"nonce_str": opensdk.RandomString(10),
@@ -121,8 +122,8 @@ func (c *WechatPayClient) PayScoreRentCreate(ctx context.Context, params PayScor
 		"rent_unit":    "FEN_1_HOUR",
 		"out_order_no": params.OutOrderNo,
 		"goods_name":   params.GoodsName,
-		// "start_time":       params.StartTime.Format("20060102030405"),
-		// "end_time":         params.EndTime.Format("20060102030405"),
+		// "start_time":       params.StartTime.Format("20060102150405"),
+		// "end_time":         params.EndTime.Format("20060102150405"),
 		"service_location": params.ServiceLocation,
 		"deposit_amount":   params.DepositAmount,
 		"rent_unit_fee":    params.RentUnitFee,
@@ -343,7 +344,7 @@ func (c *WechatPayClient) PayScoreRentFinish(ctx context.Context, params PayScor
 	}
 	if params.Returned {
 		p["returned"] = "TRUE"
-		p["real_end_time"] = params.RealEndTime.Format("20060102030405")
+		p["real_end_time"] = params.RealEndTime.Format("20060102150405")
 		p["service_end_location"] = params.ServiceEndLocation
 		p["rent_fee"] = params.TotalAmount
 	} else {
