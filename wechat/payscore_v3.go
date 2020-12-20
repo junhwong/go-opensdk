@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	logs "github.com/junhwong/go-logs"
 	"github.com/junhwong/go-opensdk/opensdk"
 )
 
@@ -74,7 +75,7 @@ func (c *WechatPayScoreV3) buildRequest(e *opensdk.DefaultExecutor) (req *http.R
 		authp["nonce_str"], // nonce_str
 		body,               // body
 	)
-	fmt.Println("debug message:\n", msg)
+	logs.Prefix("go-opensdk.wechat").Debug("message: ", msg)
 	signature, err := opensdk.Sha256RSA(msg, c.client.APICert.PrivateKey.(*rsa.PrivateKey))
 	if err != nil {
 		return nil, err
@@ -84,12 +85,11 @@ func (c *WechatPayScoreV3) buildRequest(e *opensdk.DefaultExecutor) (req *http.R
 	req.Header.Add("Authorization", authv)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
-	fmt.Println("debug Authorization:\n", authv)
+	logs.Prefix("go-opensdk.wechat").Debug("Authorization: ", authv)
 	return req, nil
 }
 func (c *WechatPayScoreV3) getResultValidator(p opensdk.Params) (ok bool, code string, msg string, subcode string, submsg string) {
 	status := p.Get("response.StatusCode").Int()
-	fmt.Println("=====StatusCode:", status)
 
 	code = p.Get("code").String()
 	msg = p.Get("message").String()

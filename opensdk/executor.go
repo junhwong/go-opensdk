@@ -121,7 +121,7 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 		return
 	}
 	// fmt.Println(string(r.Data))
-	logs.Prefix("go-opensdk.resp").Debug("request response:", string(r.Data))
+	logs.Prefix("go-opensdk").Debug("response: ", string(r.Data))
 	// fmt.Println(r)
 
 	if e.Decoder == nil {
