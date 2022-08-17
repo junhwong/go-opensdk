@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -110,9 +109,7 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 	if response != nil && response.Body != nil {
 		defer response.Body.Close()
 	}
-	for k, v := range response.Header {
-		fmt.Printf("k: %v=%v\n", k, v)
-	}
+	//
 	// println("here")
 	if err != nil {
 		log.Printf("执行请求错误：%+v", err)
