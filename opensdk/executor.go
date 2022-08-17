@@ -4,12 +4,16 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/junhwong/go-logs"
 	log "github.com/junhwong/go-logs"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 )
 
 var (
@@ -106,6 +110,9 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 	if response != nil && response.Body != nil {
 		defer response.Body.Close()
 	}
+	for k, v := range response.Header {
+		fmt.Printf("k: %v=%v\n", k, v)
+	}
 	// println("here")
 	if err != nil {
 		log.Printf("执行请求错误：%+v", err)
@@ -114,8 +121,19 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 	}
 	r.Params["response.StatusCode"] = response.StatusCode
 	r.Params["response.Header"] = response.Header
-
-	r.Data, r.Err = ioutil.ReadAll(response.Body)
+	var tr io.Reader = response.Body
+	if response.Header != nil {
+		arr := strings.Split(response.Header.Get("Content-Type"), ";")
+		for _, s := range arr {
+			if arr := strings.SplitN(s, "=", 2); len(arr) == 2 &&
+				strings.EqualFold(strings.ToLower(arr[0]), "charset") &&
+				strings.EqualFold(strings.ToLower(arr[1]), "gbk") {
+				tr = transform.NewReader(tr, simplifiedchinese.GBK.NewDecoder())
+				break
+			}
+		}
+	}
+	r.Data, r.Err = ioutil.ReadAll(tr)
 	if r.Err != nil {
 		log.Print(r.Err)
 		return
@@ -156,11 +174,10 @@ func (e *DefaultExecutor) SetNotifyURL(url string, filedName ...string) Executor
 }
 
 func DefaultDecoder(data []byte, dataFormat string, out *Params) (err error) {
+
 	switch dataFormat {
 	case "xml":
 		err = xml.Unmarshal(data, out)
-	case "json":
-		err = json.Unmarshal(data, out)
 	default:
 		err = json.Unmarshal(data, out)
 	}

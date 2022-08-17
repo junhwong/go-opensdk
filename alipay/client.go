@@ -156,12 +156,12 @@ func (c *Client) doRequest(def *opensdk.DefaultExecutor) (response *http.Request
 		dataStr, signStr := extract(data) // 分离结果和签名
 		(*out)["sign"] = signStr
 
-		newData, err := opensdk.ToUTF8Data([]byte(dataStr)) // 支付宝返回编码是GBK，不管传递参数是不是GBK。是BUG?
-		// newData, err := ioutil.ReadAll(reader)
-		if err != nil {
-			return err
-		}
-		return opensdk.DefaultDecoder(newData, dataFormat, out)
+		// newData, err := opensdk.ToUTF8Data([]byte(dataStr)) // 支付宝返回编码是GBK，不管传递参数是不是GBK。是BUG?
+		// // newData, err := ioutil.ReadAll(reader)
+		// if err != nil {
+		// 	return err
+		// }
+		return opensdk.DefaultDecoder([]byte(dataStr), dataFormat, out)
 	}
 	req, err := http.NewRequest("POST", def.APIURL, strings.NewReader(body))
 	if err != nil {

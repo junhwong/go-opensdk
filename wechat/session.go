@@ -155,6 +155,9 @@ func (c *WechatClient) GetAccessToken() (*AccessTokenResponse, error) {
 	}
 	sess := AccessTokenResponse{}
 	err = json.Unmarshal(body, &sess)
+	if err == nil && sess.AccessToken == "" {
+		fmt.Println("DEBUG: GetAccessToken Data:", string(body))
+	}
 	return &sess, err
 }
 
@@ -175,6 +178,9 @@ func (c *WechatClient) GetTicket(token string) (*AccessTokenResponse, error) {
 	}
 	sess := AccessTokenResponse{}
 	err = json.Unmarshal(body, &sess)
+	if err == nil && sess.Ticket == "" {
+		fmt.Println("DEBUG: GetTicket Data:", string(body))
+	}
 	return &sess, err
 }
 
