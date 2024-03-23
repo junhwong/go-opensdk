@@ -24,6 +24,10 @@ type WechatPayScoreV3 struct {
 func (c *WechatPayScoreV3) Parent() *WechatPayClient {
 	return c.client
 }
+
+func (c *WechatPayScoreV3) BuildExecutor(url, method string, params opensdk.Params) opensdk.Executor {
+	return c.buildExecutor(url, method, params)
+}
 func (c *WechatPayScoreV3) buildExecutor(url, method string, params opensdk.Params) opensdk.Executor {
 	e := opensdk.DefaultExecutor{
 		Params:     params,

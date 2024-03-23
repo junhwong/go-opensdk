@@ -35,6 +35,7 @@ type Executor interface {
 	ResultValidator(f func(Params) (ok bool, code string, msg string, subcode string, submsg string)) Executor
 	Set(filed string, value interface{}) Executor
 	//WithDecoder(decoder func(data []byte, dataFormat string, out *Params) (err error))
+	WithRequestHook(...func(*http.Request)) Executor
 }
 
 type DefaultExecutor struct {
@@ -48,8 +49,17 @@ type DefaultExecutor struct {
 	Err              error
 	APIURL           string
 	HTTPMethod       string
+	RequestHooks     []func(*http.Request)
 }
 
+func (e *DefaultExecutor) WithRequestHook(hooks ...func(*http.Request)) Executor {
+	for _, h := range hooks {
+		if h != nil {
+			e.RequestHooks = append(e.RequestHooks, h)
+		}
+	}
+	return e
+}
 func (e *DefaultExecutor) ResultValidator(f func(Params) (ok bool, code string, msg string, subcode string, submsg string)) Executor {
 	e.successValidator = f
 	return e
@@ -102,9 +112,17 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 		e.Err = err
 		return
 	}
+
 	// 不使用这个会产生 EOF 错误 !! see: https://stackoverflow.com/questions/17714494/golang-http-request-results-in-eof-errors-when-making-multiple-requests-successi/23963271#23963271
 	request.Close = true
 	// println("here1")
+
+	for _, h := range e.RequestHooks {
+		if h != nil {
+			h(request)
+		}
+	}
+
 	response, err := hc.Do(request)
 	if response != nil && response.Body != nil {
 		defer response.Body.Close()
@@ -160,7 +178,7 @@ func (e *DefaultExecutor) Execute(verifySign ...bool) (res Results) {
 	return
 }
 
-//SetNotifyURL 设置接口服务器主动通知调用服务器里指定的页面http/https路径。
+// SetNotifyURL 设置接口服务器主动通知调用服务器里指定的页面http/https路径。
 func (e *DefaultExecutor) SetNotifyURL(url string, filedName ...string) Executor {
 	filed := "notify_url"
 	if len(filedName) > 0 && filedName[0] != "" {

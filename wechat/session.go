@@ -54,7 +54,7 @@ func decryptData(sessionKey, iv, encryptedData string) ([]byte, error) {
 	//return AesCBCDecrypt(data, key, ivc)
 }
 
-//JSCode2Session 文档 https://developers.weixin.qq.com/miniprogram/dev/api/open-api/login/code2Session.html
+// JSCode2Session 文档 https://developers.weixin.qq.com/miniprogram/dev/api/open-api/login/code2Session.html
 func (c *WechatClient) JSCode2Session(code string) (*MiniProgramLoginSession, error) {
 	hc, err := c.HttpClient(false)
 	if err != nil {
@@ -78,7 +78,7 @@ func (c *WechatClient) JSCode2Session(code string) (*MiniProgramLoginSession, er
 	return &sess, err
 }
 
-//MiniProgramLogin 小程序登录
+// MiniProgramLogin 小程序登录
 func (c *WechatClient) MiniProgramLogin(params *MiniProgramLoginParams) (u *UserInfo, err error) {
 	sess, err := c.JSCode2Session(params.Code)
 	if err != nil {
